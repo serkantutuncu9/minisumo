@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM Mini Sumo Dinamik Canlı Skor ve Eşleşme Tablosu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#080a11',
+                        cardBg: '#111422',
+                        vurgu: '#00f2ff',
+                        altin: '#ffd700',
+                        gumus: '#c0c0c0',
+                        bronz: '#cd7f32',
+                        metin: '#e0e0e0',
+                        beyaz: '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ana-renk: #080a11;
+            --kart-bg: #111422;
+            --vurgu: #00f2ff;
+            --altin: #ffd700;
+            --gumus: #c0c0c0;
+            --bronz: #cd7f32;
+            --metin: #e0e0e0;
+            --beyaz: #ffffff;
+            --status-color: #00ff88;
+            --gold-gradient: linear-gradient(90deg, #b8860b 0%, #ffd700 25%, #ffface 50%, #ffd700 75%, #b8860b 100%);
+            --header-gradient: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 50%, #00d2ff 100%);
+        }
+
+        body.light-theme {
+            --ana-renk: #f0f4f8 !important;
+            --kart-bg: #ffffff !important;
+            --vurgu: #000080 !important;
+            --metin: #000033 !important;
+            --altin: #a67c00 !important;
+            --beyaz: #000033 !important;
+            --status-color: #000080 !important;
+        }
+
+        * { transition: background-color 0.3s ease, color 0.3s ease; box-sizing: border-box; }
+
+        body { 
+            background-color: var(--ana-renk); 
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--metin);
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+        }
+
+        .board-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 40px;
+            background: rgba(0,0,0,0.4);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .header h2 { 
+            margin: 0; font-size: 1.8rem; font-weight: 900;
+            background: var(--header-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine-blue 3s linear infinite;
+            width: 250px;
+        }
+
+        .project-center-title { text-align: center; flex-grow: 1; }
+        .main-title {
+            font-size: 2.2rem; font-weight: 900; letter-spacing: 3px;
+            background: var(--gold-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine-gold 2.5s linear infinite;
+            text-transform: uppercase;
+        }
+        .sub-title { font-size: 1.1rem; color: #d4af37; font-weight: 700; margin-top: -5px; }
+
+        @keyframes shine-gold { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
+        @keyframes shine-blue { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+        .status-block { display: flex; flex-direction: column; align-items: flex-end; width: 250px; }
+        .digital-clock { font-size: 1.8rem; font-family: monospace; font-weight: bold; color: var(--beyaz); text-shadow: 0 0 10px var(--vurgu); }
+        
+        .system-status { font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--beyaz); margin-top: 5px; }
+        .status-dot { height: 10px; width: 10px; background-color: #00ff88; border-radius: 50%; animation: pulse-glow 1.5s infinite; }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
+
+        /* Sürükle ve Yakınlaştır (Pan & Zoom) Viewport Tasarımı */
+        .bracket-view-container {
+            display: none;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+            background: radial-gradient(circle at center, rgba(16, 20, 38, 0.2) 0%, rgba(8, 10, 17, 1) 100%);
+        }
+        .bracket-view-container:active {
+            cursor: grabbing;
+        }
+
+        /* Çift Kanatlı (Dual-Wing) Ağacın Taşıyıcı Kanvası */
+        .zoom-canvas {
+            position: absolute;
+            transform-origin: 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            padding: 100px;
+            min-height: 100%;
+            min-width: 100%;
+        }
+
+        /* Sol Kanat Grubu */
+        .left-wing {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            justify-content: flex-end;
+        }
+
+        /* Sağ Kanat Grubu */
+        .right-wing {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-direction: row-reverse;
+            justify-content: flex-start;
+        }
+
+        /* Merkez (Büyük Final ve Şampiyon) Sütunu */
+        .center-stage {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 320px;
+            flex-shrink: 0;
+            z-index: 20;
+            gap: 40px;
+        }
+
+        .round-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            height: 100%;
+            flex-shrink: 0;
+            width: 250px;
+            position: relative;
+            z-index: 10;
+            gap: 15px;
+        }
+
+        .matchup-box {
+            background: var(--kart-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .matchup-box:hover {
+            border-color: var(--vurgu);
+            transform: scale(1.02);
+        }
+
+        .match-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--vurgu);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .team-slot-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            min-height: 38px;
+        }
+
+        .team-slot-row.winner {
+            background: rgba(0, 255, 136, 0.08);
+            border-color: rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .team-slot-row.loser {
+            opacity: 0.4;
+        }
+
+        .score-badge-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 900;
+            color: var(--altin);
+            font-size: 0.8rem;
+        }
+
+        /* Grid Görünüm Alanı */
+        .grid-view-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 40px;
+            overflow-y: auto;
+        }
+
+        /* SVG Bağlantı Çizgileri Alanı */
+        .svg-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .footer-info { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(0,0,0,0.4); flex-shrink: 0; }
+        .controls { display: flex; align-items: center; gap: 20px; }
+        .icon-btn { cursor: pointer; font-size: 1.3rem; color: var(--beyaz); opacity: 0.7; transition: 0.3s; }
+        .icon-btn:hover { opacity: 1; color: var(--altin); }
+    </style>
+</head>
+<body>
+
+<div class="board-container">
+    <!-- Üst Header -->
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:20px;">
+            <button onclick="window.location.href='https://serkantutuncu9.github.io/Portal/'" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">
+                <i class="fas fa-home"></i>
+            </button>
+            <h2>SKOR TABLOSU</h2>
+        </div>
+        <div class="project-center-title">
+            <div class="main-title">TÜRKİYE STEM YARIŞMASI</div>
+            <div class="sub-title" id="stage-sub-title">Mini Sumo Robot Yarışması</div>
+        </div>
+        <div class="status-block">
+            <div class="digital-clock" id="live-clock">00:00:00</div>
+            <div class="system-status"><span class="status-dot"></span> SİSTEM AKTİF</div>
+        </div>
+    </div>
+
+    <!-- Aşama Seçici Menü (Dinamik olarak JS ile doldurulacaktır) -->
+    <div id="stage-buttons-container" class="bg-[#101323] border-b border-white/5 px-10 py-3 flex flex-wrap gap-2 justify-center items-center">
+        <!-- Butonlar takım sayılarına ve gelen eşleşmelere göre dinamik üretilir -->
+    </div>
+
+    <!-- Grid Arayüz Modu (Ön Eleme ve Son 64 için) -->
+    <div class="grid-view-container" id="grid-view">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4 py-10" id="stage-grid-view">
+            <!-- JavaScript dinamik olarak burayı dolduracaktır -->
+        </div>
+    </div>
+
+    <!-- Dinamik Bracket Çift Kanat Görünüm Alanı (Son 32, Son 16, Finaller için) -->
+    <div class="bracket-view-container" id="bracket-view">
+        <div class="zoom-canvas" id="zoom-canvas">
+            <svg class="svg-canvas" id="svg-connections"></svg>
+            
+            <!-- Çift Kanat Yapısı: Sol Kanat -->
+            <div class="left-wing" id="bracket-left-wing"></div>
+            
+            <!-- Çift Kanat Yapısı: Merkez (Final ve Şampiyon) -->
+            <div class="center-stage" id="bracket-center-stage"></div>
+            
+            <!-- Çift Kanat Yapısı: Sağ Kanat -->
+            <div class="right-wing" id="bracket-right-wing"></div>
+        </div>
+    </div>
+
+    <!-- Alt Bilgi Çubuğu -->
+    <div class="footer-info">
+        <span id="status-label" style="color:var(--altin); font-weight:bold;">E-Tablo verisi senkronize ediliyor...</span>
+        <div class="controls">
+            <!-- Kaydırma & Zoom Kontrolleri -->
+            <div id="navigation-hints" class="hidden sm:flex items-center space-x-3 text-xs text-slate-400 mr-4">
+                <span><i class="fas fa-arrows-alt mr-1"></i> Sürükleyerek Kaydırın</span>
+                <span><i class="fas fa-search mr-1"></i> Tekerlek ile Zoom Yapın</span>
+            </div>
+            <div id="zoom-controls" class="hidden flex items-center space-x-2 mr-4">
+                <button onclick="zoom(0.1)" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Yakınlaş"><i class="fas fa-plus"></i></button>
+                <button onclick="zoom(-0.1)" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Uzaklaş"><i class="fas fa-minus"></i></button>
+                <button onclick="resetZoomAndPan()" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Sıfırla"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <i class="fas fa-lightbulb icon-btn" title="Tema Değiştir" onclick="document.body.classList.toggle('light-theme')"></i>
+            <i class="fas fa-expand icon-btn" title="Tam Ekran" onclick="toggleFullScreen()"></i>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sizin tablonuzun Mini Sumo (Son 64) sekmesine ait canlı CSV yayın linki
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVfTp7wZiJaJ95n2H7NWiEWQIvn6SX7V6t8hK0FbsqCirFD-Os7KIMe4O1_Im3uOERV3VUYwdKcYod/pub?output=csv&gid=0';
+
+    let activeStage = 'r32'; 
+    let allMatches = {};
+
+    // Sürükleme ve Zoom Değişkenleri
+    let scale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const bracketView = document.getElementById('bracket-view');
+    const zoomCanvas = document.getElementById('zoom-canvas');
+
+    // Pan & Zoom Event Dinleyicileri
+    bracketView.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+        isDragging = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    bracketView.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        applyZoomAndPan();
+    });
+
+    bracketView.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomStep = 0.05;
+        if (e.deltaY < 0) {
+            scale = Math.min(scale + zoomStep, 1.8);
+        } else {
+            scale = Math.max(scale - zoomStep, 0.3);
+        }
+        applyZoomAndPan();
+    }, { passive: false });
+
+    function applyZoomAndPan() {
+        zoomCanvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        drawDinamikConnectionsOnResize();
+    }
+
+    function zoom(direction) {
+        scale = Math.max(0.3, Math.min(1.8, scale + direction));
+        applyZoomAndPan();
+    }
+
+    function resetZoomAndPan() {
+        // Çift kanat yerleşiminde ekranı daha iyi ortalayabilmek için tura özel ölçeklendirme
+        if (activeStage === 'r32') {
+            scale = 0.45;
+            panX = 250;
+            panY = 120;
+        } else if (activeStage === 'r16') {
+            scale = 0.65;
+            panX = 180;
+            panY = 80;
+        } else {
+            scale = 0.85;
+            panX = 100;
+            panY = 40;
+        }
+        applyZoomAndPan();
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+    
+    function updateClock() { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR'); }
+    setInterval(updateClock, 1000);
+
+    async function fetchData() {
+        try {
+            const response = await fetch(CSV_URL + '&cb=' + Date.now());
+            const rawData = await response.text();
+            
+            const rows = rawData.split(/\r?\n/);
+            const separator = rows[0].includes(';') ? ';' : ',';
+            
+            let tempMatches = {};
+
+            for (let i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                const cols = rows[i].split(separator).map(col => col.replace(/^"|"$/g, '').trim());
+                
+                if (cols.length >= 5) {
+                    const matchId = cols[0].toLowerCase().trim();
+                    tempMatches[matchId] = {
+                        id: cols[0],
+                        t1: cols[1] || 'Bekleniyor...',
+                        t2: cols[2] || 'Bekleniyor...',
+                        s1: cols[3] || '0',
+                        s2: cols[4] || '0',
+                        winner: cols[5] || ''
+                    };
+                }
+            }
+
+            allMatches = tempMatches;
+            updateStageButtons();
+            renderView();
+            document.getElementById('status-label').innerText = 'E-Tablo Verisi Senkronize Edildi';
+        } catch (err) { 
+            console.error("Veri okuma hatası:", err); 
+            document.getElementById('status-label').innerText = 'E-Tablo bağlantısı kurulamadı!';
+        }
+    }
+
+    function updateStageButtons() {
+        const container = document.getElementById('stage-buttons-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const hasEleme = Object.keys(allMatches).some(k => k.startsWith('eleme_'));
+        const hasR64 = Object.keys(allMatches).some(k => k.startsWith('r64_'));
+        const hasR32 = Object.keys(allMatches).some(k => k.startsWith('r32_'));
+        const hasR16 = Object.keys(allMatches).some(k => k.startsWith('r16_'));
+        const hasFinals = Object.keys(allMatches).some(k => k.startsWith('qf_') || k.startsWith('sf_') || k.startsWith('f_'));
+
+        let stagesAvailable = [];
+        if (hasEleme) stagesAvailable.push('eleme');
+        if (hasR64) stagesAvailable.push('r64');
+        if (hasR32) stagesAvailable.push('r32');
+        if (hasR16) stagesAvailable.push('r16');
+        if (hasFinals) stagesAvailable.push('finals');
+
+        if (stagesAvailable.length === 0) {
+            stagesAvailable = ['r32', 'r16', 'finals'];
+        }
+
+        if (!stagesAvailable.includes(activeStage)) {
+            activeStage = stagesAvailable[0];
+        }
+
+        stagesAvailable.forEach(s => {
+            const btn = document.createElement('button');
+            btn.id = `btn-${s}`;
+            btn.onclick = () => setStage(s);
+            
+            let label = '';
+            let icon = '';
+            switch(s) {
+                case 'eleme':
+                    label = 'ÖN ELEMELER';
+                    icon = '<i class="fas fa-filter mr-1"></i>';
+                    break;
+                case 'r64':
+                    label = 'SON 64';
+                    break;
+                case 'r32':
+                    label = 'SON 32';
+                    icon = '<i class="fas fa-sitemap mr-1"></i>';
+                    break;
+                case 'r16':
+                    label = 'SON 16';
+                    icon = '<i class="fas fa-sitemap mr-1"></i>';
+                    break;
+                case 'finals':
+                    label = 'FİNALLER (SON 8)';
+                    icon = '<i class="fas fa-trophy mr-1"></i>';
+                    break;
+            }
+
+            if (s === activeStage) {
+                btn.className = (s === 'finals' || s === 'r32' || s === 'r16')
+                    ? "px-4 py-2 rounded-lg text-xs font-bold transition bg-amber-500 text-white shadow"
+                    : "px-4 py-2 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow";
+            } else {
+                btn.className = (s === 'finals' || s === 'r32' || s === 'r16')
+                    ? "px-4 py-2 rounded-lg text-xs font-bold transition text-amber-400 border border-amber-500/20 hover:bg-amber-500/10"
+                    : "px-4 py-2 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+            }
+            btn.innerHTML = `${icon}${label}`;
+            container.appendChild(btn);
+        });
+    }
+
+    function setStage(stage) {
+        activeStage = stage;
+        updateStageButtons();
+        renderView();
+    }
+
+    function renderView() {
+        const gridView = document.getElementById('grid-view');
+        const bracketViewDiv = document.getElementById('bracket-view');
+        const titleEl = document.getElementById('stage-sub-title');
+        const navHints = document.getElementById('navigation-hints');
+        const zoomCtrls = document.getElementById('zoom-controls');
+
+        if (activeStage === 'r32' || activeStage === 'r16' || activeStage === 'finals') {
+            gridView.style.display = 'none';
+            bracketViewDiv.style.display = 'block';
+            navHints.classList.remove('hidden');
+            zoomCtrls.classList.remove('hidden');
+            
+            if (activeStage === 'r32') {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Son 32 Çift Kanatlı Eleme Ağacı)";
+                renderDualWingBracket(['r32', 'r16', 'qf', 'sf']);
+            } else if (activeStage === 'r16') {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Son 16 Çift Kanatlı Eleme Ağacı)";
+                renderDualWingBracket(['r16', 'qf', 'sf']);
+            } else {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Büyük Finaller)";
+                renderDualWingBracket(['qf', 'sf']);
+            }
+            resetZoomAndPan();
+        } else {
+            bracketViewDiv.style.display = 'none';
+            gridView.style.display = 'flex';
+            navHints.classList.add('hidden');
+            zoomCtrls.classList.add('hidden');
+            
+            if (activeStage === 'eleme') titleEl.innerText = "Mini Sumo Robot Yarışması (Ön Eleme Turları)";
+            else if (activeStage === 'r64') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 64 Maçları)";
+            
+            renderStageGrid();
+        }
+    }
+
+    function renderStageGrid() {
+        const gridContainer = document.getElementById('stage-grid-view');
+        gridContainer.innerHTML = '';
+        
+        let matchPrefix = activeStage; 
+        let maxCount = 32;
+        let title = "SON 64";
+
+        if (activeStage === 'eleme') {
+            const elemeKeys = Object.keys(allMatches).filter(k => k.startsWith('eleme_'));
+            maxCount = elemeKeys.length > 0 ? Math.max(...elemeKeys.map(k => parseInt(k.split('_')[1]) || 1)) : 16;
+            title = "ÖN ELEME";
+        }
+
+        for (let i = 1; i <= maxCount; i++) {
+            const matchKey = `${matchPrefix}_${i}`;
+            const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
+            
+            const isT1Winner = m.winner && m.winner === m.t1;
+            const isT2Winner = m.winner && m.winner === m.t2;
+
+            const card = document.createElement('div');
+            card.className = "matchup-box";
+            card.innerHTML = `
+                <div class="match-label">
+                    <span class="uppercase font-bold">${title} - MAÇ ${i}</span>
+                </div>
+                <div class="team-slot-row ${isT1Winner ? 'winner' : (m.winner ? 'loser' : '')}">
+                    <span class="truncate">${m.t1}</span>
+                    <span class="score-badge-box">${m.s1}</span>
+                </div>
+                <div class="team-slot-row ${isT2Winner ? 'winner' : (m.winner ? 'loser' : '')}">
+                    <span class="truncate">${m.t2}</span>
+                    <span class="score-badge-box">${m.s2}</span>
+                </div>
+            `;
+            gridContainer.appendChild(card);
+        }
+    }
+
+    // Çift Kanatlı (Sol - Merkez - Sağ) Bracket Ağacı Üretici Algoritması
+    function renderDualWingBracket(roundsList) {
+        const leftWing = document.getElementById('bracket-left-wing');
+        const rightWing = document.getElementById('bracket-right-wing');
+        const centerStage = document.getElementById('bracket-center-stage');
+
+        // Temizlik
+        leftWing.innerHTML = '';
+        rightWing.innerHTML = '';
+        centerStage.innerHTML = '';
+
+        const roundLabels = {
+            'r32': 'SON 32',
+            'r16': 'SON 16',
+            'qf': 'ÇEYREK FİNAL',
+            'sf': 'YARI FİNAL'
+        };
+
+        const counts = { 'r32': 16, 'r16': 8, 'qf': 4, 'sf': 2 };
+
+        // 1. Sol ve Sağ Kanat Kolonlarını Ekle (Final hariç turlar)
+        roundsList.forEach((roundKey) => {
+            const totalMatches = counts[roundKey];
+            const halfMatches = totalMatches / 2;
+
+            // Sol Kanat Kolonu (Maçlar: 1'den Yarıya kadar)
+            const leftCol = document.createElement('div');
+            leftCol.className = "round-column";
+            leftCol.id = `col-left-${roundKey}`;
+            
+            for (let i = 1; i <= halfMatches; i++) {
+                createMatchBox(leftCol, roundKey, i, roundLabels[roundKey]);
+            }
+            leftWing.appendChild(leftCol);
+
+            // Sağ Kanat Kolonu (Maçlar: Yarıdan fazlası)
+            const rightCol = document.createElement('div');
+            rightCol.className = "round-column";
+            rightCol.id = `col-right-${roundKey}`;
+            
+            for (let i = halfMatches + 1; i <= totalMatches; i++) {
+                // Sağ kanatta maçların sıralamasını koruyarak dikey yerleştir
+                createMatchBox(rightCol, roundKey, i, roundLabels[roundKey]);
+            }
+            rightWing.appendChild(rightCol);
+        });
+
+        // 2. Merkez Sütunu Oluştur (Şampiyonluk Kupası üstte, Büyük Final altta)
+        
+        // Üst: Şampiyonluk Kartı
+        const champBox = document.createElement('div');
+        champBox.id = "col-champ";
+        champBox.className = "w-full max-w-[280px]";
+        
+        const finalMatch = allMatches['f_1'] || { winner: '' };
+        const champName = (allMatches['champ'] && allMatches['champ'].winner) || finalMatch.winner || 'KUPA BEKLENİYOR';
+
+        champBox.innerHTML = `
+            <div class="bg-gradient-to-b from-amber-500/20 to-yellow-600/5 border-2 border-yellow-500/50 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden w-full">
+                <div class="absolute -top-10 -left-10 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl"></div>
+                <i class="fas fa-crown text-5xl text-yellow-400 mb-3 animate-bounce"></i>
+                <h4 class="text-xs font-black tracking-widest text-yellow-500 uppercase mb-1">ŞAMPİYON</h4>
+                <div class="text-lg font-extrabold text-white truncate">${champName}</div>
+                <p class="text-[10px] text-slate-400 mt-2 font-semibold">TÜRKİYE STEM YARIŞMASI</p>
+            </div>
+        `;
+        centerStage.appendChild(champBox);
+
+        // Alt: Büyük Final Kutusu (Sol Şampiyonu vs Sağ Şampiyonu)
+        const finalBox = document.createElement('div');
+        finalBox.className = "matchup-box";
+        finalBox.id = "box-f_1";
+        finalBox.style.transform = "scale(1.15)";
+        
+        const isT1Winner = finalMatch.winner && finalMatch.winner === finalMatch.t1;
+        const isT2Winner = finalMatch.winner && finalMatch.winner === finalMatch.t2;
+
+        finalBox.innerHTML = `
+            <div class="match-label">
+                <span class="text-amber-400 font-extrabold"><i class="fas fa-trophy mr-1"></i> BÜYÜK FİNAL</span>
+                <span class="text-slate-500">M7</span>
+            </div>
+            <div class="team-slot-row ${isT1Winner ? 'winner' : (finalMatch.winner ? 'loser' : '')}">
+                <span class="truncate text-xs">${finalMatch.t1}</span>
+                <span class="score-badge-box">${finalMatch.s1}</span>
+            </div>
+            <div class="team-slot-row ${isT2Winner ? 'winner' : (finalMatch.winner ? 'loser' : '')}">
+                <span class="truncate text-xs">${finalMatch.t2}</span>
+                <span class="score-badge-box">${finalMatch.s2}</span>
+            </div>
+        `;
+        centerStage.appendChild(finalBox);
+
+        // 3. Bağlantı Çizgilerini Çiz
+        setTimeout(() => drawDualWingConnections(roundsList), 150);
+    }
+
+    function createMatchBox(parent, roundKey, i, label) {
+        const matchKey = `${roundKey}_${i}`;
+        const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
+        
+        const isT1Winner = m.winner && m.winner === m.t1;
+        const isT2Winner = m.winner && m.winner === m.t2;
+
+        const box = document.createElement('div');
+        box.className = "matchup-box";
+        box.id = `box-${roundKey}_${i}`;
+        box.innerHTML = `
+            <div class="match-label">
+                <span>${label} ${i}</span>
+                <span class="text-slate-500">M${i}</span>
+            </div>
+            <div class="team-slot-row ${isT1Winner ? 'winner' : (m.winner ? 'loser' : '')}">
+                <span class="truncate text-xs">${m.t1}</span>
+                <span class="score-badge-box">${m.s1}</span>
+            </div>
+            <div class="team-slot-row ${isT2Winner ? 'winner' : (m.winner ? 'loser' : '')}">
+                <span class="truncate text-xs">${m.t2}</span>
+                <span class="score-badge-box">${m.s2}</span>
+            </div>
+        `;
+        parent.appendChild(box);
+    }
+
+    function drawDinamikConnectionsOnResize() {
+        const roundsList = activeStage === 'r32' 
+            ? ['r32', 'r16', 'qf', 'sf'] 
+            : (activeStage === 'r16' ? ['r16', 'qf', 'sf'] : ['qf', 'sf']);
+        drawDualWingConnections(roundsList);
+    }
+
+    // Çift Kanatlı Bezier Bağlantı Çizgisi Çizim Algoritması
+    function drawDualWingConnections(roundsList) {
+        const svg = document.getElementById('svg-connections');
+        if (!svg) return;
+        svg.innerHTML = '';
+
+        const counts = { 'r32': 16, 'r16': 8, 'qf': 4, 'sf': 2 };
+
+        for (let r = 0; r < roundsList.length - 1; r++) {
+            const currentRound = roundsList[r];
+            const nextRound = roundsList[r + 1];
+            const currentCount = counts[currentRound];
+            const halfCount = currentCount / 2;
+
+            // Sol Kanat Çizgileri (Soldan Sağa doğru bağlanır)
+            for (let m = 1; m <= halfCount; m++) {
+                const startCard = document.getElementById(`box-${currentRound}_${m}`);
+                const nextMatchIndex = Math.ceil(m / 2);
+                const endCard = document.getElementById(`box-${nextRound}_${nextMatchIndex}`);
+                if (startCard && endCard) {
+                    drawBezierCurveDual(svg, startCard, endCard, "left", "rgba(0, 242, 255, 0.22)", 2);
+                }
+            }
+
+            // Sağ Kanat Çizgileri (Sağdan Sola doğru bağlanır)
+            for (let m = halfCount + 1; m <= currentCount; m++) {
+                const startCard = document.getElementById(`box-${currentRound}_${m}`);
+                // Sağ taraftaki yarı maçların dikey katlanma oranını doğru koru
+                const offsetMatchIndex = m - halfCount;
+                const nextMatchIndex = Math.ceil(offsetMatchIndex / 2) + (counts[nextRound] / 2);
+                const endCard = document.getElementById(`box-${nextRound}_${nextMatchIndex}`);
+                if (startCard && endCard) {
+                    drawBezierCurveDual(svg, startCard, endCard, "right", "rgba(0, 242, 255, 0.22)", 2);
+                }
+            }
+        }
+
+        // Sol Kanat Yarı Final Şampiyonunun Finale (f_1) Bağlanması
+        const leftSfWinnerCard = document.getElementById('box-sf_1');
+        const finalCard = document.getElementById('box-f_1');
+        if (leftSfWinnerCard && finalCard) {
+            drawBezierCurveDual(svg, leftSfWinnerCard, finalCard, "left-final", "rgba(0, 242, 255, 0.35)", 2.5);
+        }
+
+        // Sağ Kanat Yarı Final Şampiyonunun Finale (f_1) Bağlanması
+        const rightSfWinnerCard = document.getElementById('box-sf_2');
+        if (rightSfWinnerCard && finalCard) {
+            drawBezierCurveDual(svg, rightSfWinnerCard, finalCard, "right-final", "rgba(0, 242, 255, 0.35)", 2.5);
+        }
+
+        // Final Maçından Şampiyona giden kupa dikey çizgisi (Yukarı doğru)
+        const champCard = document.getElementById('col-champ');
+        if (finalCard && champCard) {
+            drawVerticalBezierCurve(svg, finalCard, champCard, "rgba(255, 215, 0, 0.38)", 2.8);
+        }
+    }
+
+    // Çift Kanat Özel Çizgi Çizici (Kanat Yönüne Duyarlı)
+    function drawBezierCurveDual(svg, el1, el2, direction, color, strokeWidth) {
+        const rect1 = el1.getBoundingClientRect();
+        const rect2 = el2.getBoundingClientRect();
+        const containerRect = zoomCanvas.getBoundingClientRect();
+
+        let startX, endX;
+        
+        // Sol kanatta bağlantılar sağ kenardan, sağ kanatta ise sol kenardan başlar
+        if (direction === "left" || direction === "left-final") {
+            startX = (rect1.right - containerRect.left) / scale;
+            endX = (rect2.left - containerRect.left) / scale;
+        } else { // right veya right-final
+            startX = (rect1.left - containerRect.left) / scale;
+            endX = (rect2.right - containerRect.left) / scale;
+        }
+
+        const startY = (rect1.top + rect1.height / 2 - containerRect.top) / scale;
+        const endY = (rect2.top + rect2.height / 2 - containerRect.top) / scale;
+
+        const midX = startX + (endX - startX) / 2;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`);
+        path.setAttribute("stroke", color);
+        path.setAttribute("stroke-width", strokeWidth);
+        path.setAttribute("fill", "none");
+        
+        svg.appendChild(path);
+    }
+
+    // Merkezdeki Finalden Şampiyona Dikey Çizgi Çizici
+    function drawVerticalBezierCurve(svg, el1, el2, color, strokeWidth) {
+        const rect1 = el1.getBoundingClientRect();
+        const rect2 = el2.getBoundingClientRect();
+        const containerRect = zoomCanvas.getBoundingClientRect();
+
+        const startX = (rect1.left + rect1.width / 2 - containerRect.left) / scale;
+        const startY = (rect1.top - containerRect.top) / scale; // Üst kenardan kupa altına
+        
+        const endX = (rect2.left + rect2.width / 2 - containerRect.left) / scale;
+        const endY = (rect2.bottom - containerRect.top) / scale; // Kupanın alt kenarına
+
+        const midY = startY + (endY - startY) / 2;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`);
+        path.setAttribute("stroke", color);
+        path.setAttribute("stroke-width", strokeWidth);
+        path.setAttribute("fill", "none");
+        
+        svg.appendChild(path);
+    }
+
+    // Döngüsel Yenileme Akışı
+    async function startCycle() {
+        await fetchData();
+        setInterval(fetchData, 15000); 
+    }
+
+    startCycle();
+    updateClock();
+</script>
+</body>
+</html>
