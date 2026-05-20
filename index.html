@@ -223,6 +223,11 @@
             color: #00ff88;
         }
 
+        .team-slot-row.winner .score-badge-box {
+            color: #080a11;
+            background: #00ff88;
+        }
+
         .team-slot-row.loser {
             opacity: 0.4;
         }
@@ -282,19 +287,17 @@
         </div>
     </div>
 
-    <!-- Aşama Seçici Menü (Dinamik olarak JS ile doldurulacaktır) -->
+    <!-- Aşama Seçici Menü -->
     <div id="stage-buttons-container" class="bg-[#101323] border-b border-white/5 px-10 py-3 flex flex-wrap gap-2 justify-center items-center">
-        <!-- Butonlar takım sayılarına ve gelen eşleşmelere göre dinamik üretilir -->
     </div>
 
-    <!-- Grid Arayüz Modu (Ön Eleme ve Son 64 için) -->
+    <!-- Grid Arayüz Modu (Eleme, Son 64, Son 32 ve Son 16 için) -->
     <div class="grid-view-container" id="grid-view">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4 py-10" id="stage-grid-view">
-            <!-- JavaScript dinamik olarak burayı dolduracaktır -->
         </div>
     </div>
 
-    <!-- Dinamik Bracket Çift Kanat Görünüm Alanı (Son 32, Son 16, Finaller için) -->
+    <!-- Dinamik Bracket Çift Kanat Görünüm Alanı (Çeyrek Final, Yarı Final, Büyük Final için) -->
     <div class="bracket-view-container" id="bracket-view">
         <div class="zoom-canvas" id="zoom-canvas">
             <svg class="svg-canvas" id="svg-connections"></svg>
@@ -331,8 +334,8 @@
 </div>
 
 <script>
-    // Sizin tablonuzun Mini Sumo (Son 64) sekmesine ait canlı CSV yayın linki
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVfTp7wZiJaJ95n2H7NWiEWQIvn6SX7V6t8hK0FbsqCirFD-Os7KIMe4O1_Im3uOERV3VUYwdKcYod/pub?output=csv&gid=0';
+    // Canlı Google Apps Script Web App API URL'iniz
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxRp5jIAhNPYm3uPwMwzQW7cx_ZVyvNWaF8TRJjrbXNegE-3m4M5wzFmuH5Uf3Cn5rV/exec';
 
     let activeStage = 'r32'; 
     let allMatches = {};
@@ -389,15 +392,18 @@
     }
 
     function resetZoomAndPan() {
-        // Çift kanat yerleşiminde ekranı daha iyi ortalayabilmek için tura özel ölçeklendirme
-        if (activeStage === 'r32') {
-            scale = 0.45;
-            panX = 250;
-            panY = 120;
-        } else if (activeStage === 'r16') {
-            scale = 0.65;
-            panX = 180;
-            panY = 80;
+        if (activeStage === 'qf') {
+            scale = 0.55;
+            panX = 220;
+            panY = 100;
+        } else if (activeStage === 'sf') {
+            scale = 0.75;
+            panX = 140;
+            panY = 60;
+        } else if (activeStage === 'finals') {
+            scale = 0.95;
+            panX = 50;
+            panY = 20;
         } else {
             scale = 0.85;
             panX = 100;
@@ -414,37 +420,37 @@
     function updateClock() { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR'); }
     setInterval(updateClock, 1000);
 
+    // Verileri doğrudan canlı Google Apps Script API'den çeken fonksiyon
     async function fetchData() {
         try {
-            const response = await fetch(CSV_URL + '&cb=' + Date.now());
-            const rawData = await response.text();
+            // Sürüm 3.3.1 API uyumlu minisumo skorlarını çekiyoruz
+            const response = await fetch(`${scriptURL}?action=getScores&kategori=minisumo&t=${Date.now()}`);
+            const json = await response.json();
             
-            const rows = rawData.split(/\r?\n/);
-            const separator = rows[0].includes(';') ? ';' : ',';
-            
-            let tempMatches = {};
-
-            for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                const cols = rows[i].split(separator).map(col => col.replace(/^"|"$/g, '').trim());
+            if (json && json.success && Array.isArray(json.data)) {
+                let tempMatches = {};
                 
-                if (cols.length >= 5) {
-                    const matchId = cols[0].toLowerCase().trim();
-                    tempMatches[matchId] = {
-                        id: cols[0],
-                        t1: cols[1] || 'Bekleniyor...',
-                        t2: cols[2] || 'Bekleniyor...',
-                        s1: cols[3] || '0',
-                        s2: cols[4] || '0',
-                        winner: cols[5] || ''
-                    };
-                }
-            }
+                json.data.forEach(m => {
+                    const matchKey = m.sira ? m.sira.toString().toLowerCase().trim() : "";
+                    if (matchKey) {
+                        tempMatches[matchKey] = {
+                            id: m.sira,
+                            t1: m.id ? m.id.toString().trim() : 'Bekleniyor...',
+                            t2: m.takimAdi ? m.takimAdi.toString().trim() : 'Bekleniyor...',
+                            s1: m.kolon4 ? m.kolon4.toString().trim() : '0',
+                            s2: m.kolon5 ? m.kolon5.toString().trim() : '0',
+                            winner: m.kolon6 ? m.kolon6.toString().trim() : ''
+                        };
+                    }
+                });
 
-            allMatches = tempMatches;
-            updateStageButtons();
-            renderView();
-            document.getElementById('status-label').innerText = 'E-Tablo Verisi Senkronize Edildi';
+                allMatches = tempMatches;
+                updateStageButtons();
+                renderView();
+                document.getElementById('status-label').innerText = 'E-Tablo Verisi Senkronize Edildi';
+            } else {
+                throw new Error("Geçersiz API verisi");
+            }
         } catch (err) { 
             console.error("Veri okuma hatası:", err); 
             document.getElementById('status-label').innerText = 'E-Tablo bağlantısı kurulamadı!';
@@ -457,26 +463,8 @@
 
         container.innerHTML = '';
 
-        const hasEleme = Object.keys(allMatches).some(k => k.startsWith('eleme_'));
-        const hasR64 = Object.keys(allMatches).some(k => k.startsWith('r64_'));
-        const hasR32 = Object.keys(allMatches).some(k => k.startsWith('r32_'));
-        const hasR16 = Object.keys(allMatches).some(k => k.startsWith('r16_'));
-        const hasFinals = Object.keys(allMatches).some(k => k.startsWith('qf_') || k.startsWith('sf_') || k.startsWith('f_'));
-
-        let stagesAvailable = [];
-        if (hasEleme) stagesAvailable.push('eleme');
-        if (hasR64) stagesAvailable.push('r64');
-        if (hasR32) stagesAvailable.push('r32');
-        if (hasR16) stagesAvailable.push('r16');
-        if (hasFinals) stagesAvailable.push('finals');
-
-        if (stagesAvailable.length === 0) {
-            stagesAvailable = ['r32', 'r16', 'finals'];
-        }
-
-        if (!stagesAvailable.includes(activeStage)) {
-            activeStage = stagesAvailable[0];
-        }
+        // İster boş ister dolu olsun her zaman gösterilecek zorunlu turlar
+        let stagesAvailable = ['eleme', 'r64', 'r32', 'r16', 'qf', 'sf', 'finals'];
 
         stagesAvailable.forEach(s => {
             const btn = document.createElement('button');
@@ -492,27 +480,36 @@
                     break;
                 case 'r64':
                     label = 'SON 64';
+                    icon = '<i class="fas fa-list mr-1"></i>';
                     break;
                 case 'r32':
                     label = 'SON 32';
-                    icon = '<i class="fas fa-sitemap mr-1"></i>';
+                    icon = '<i class="fas fa-list mr-1"></i>';
                     break;
                 case 'r16':
                     label = 'SON 16';
+                    icon = '<i class="fas fa-list mr-1"></i>';
+                    break;
+                case 'qf':
+                    label = 'ÇEYREK FİNAL';
+                    icon = '<i class="fas fa-sitemap mr-1"></i>';
+                    break;
+                case 'sf':
+                    label = 'YARI FİNAL';
                     icon = '<i class="fas fa-sitemap mr-1"></i>';
                     break;
                 case 'finals':
-                    label = 'FİNALLER (SON 8)';
+                    label = 'BÜYÜK FİNAL';
                     icon = '<i class="fas fa-trophy mr-1"></i>';
                     break;
             }
 
             if (s === activeStage) {
-                btn.className = (s === 'finals' || s === 'r32' || s === 'r16')
+                btn.className = (s === 'finals' || s === 'qf' || s === 'sf')
                     ? "px-4 py-2 rounded-lg text-xs font-bold transition bg-amber-500 text-white shadow"
                     : "px-4 py-2 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow";
             } else {
-                btn.className = (s === 'finals' || s === 'r32' || s === 'r16')
+                btn.className = (s === 'finals' || s === 'qf' || s === 'sf')
                     ? "px-4 py-2 rounded-lg text-xs font-bold transition text-amber-400 border border-amber-500/20 hover:bg-amber-500/10"
                     : "px-4 py-2 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
             }
@@ -534,21 +531,21 @@
         const navHints = document.getElementById('navigation-hints');
         const zoomCtrls = document.getElementById('zoom-controls');
 
-        if (activeStage === 'r32' || activeStage === 'r16' || activeStage === 'finals') {
+        if (activeStage === 'qf' || activeStage === 'sf' || activeStage === 'finals') {
             gridView.style.display = 'none';
             bracketViewDiv.style.display = 'block';
             navHints.classList.remove('hidden');
             zoomCtrls.classList.remove('hidden');
             
-            if (activeStage === 'r32') {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Son 32 Çift Kanatlı Eleme Ağacı)";
-                renderDualWingBracket(['r32', 'r16', 'qf', 'sf']);
-            } else if (activeStage === 'r16') {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Son 16 Çift Kanatlı Eleme Ağacı)";
-                renderDualWingBracket(['r16', 'qf', 'sf']);
-            } else {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Büyük Finaller)";
+            if (activeStage === 'qf') {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Çeyrek Final Eşleşme Ağacı)";
                 renderDualWingBracket(['qf', 'sf']);
+            } else if (activeStage === 'sf') {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Yarı Final Eşleşme Ağacı)";
+                renderDualWingBracket(['sf']);
+            } else {
+                titleEl.innerText = "Mini Sumo Robot Yarışması (Büyük Final)";
+                renderDualWingBracket([]); 
             }
             resetZoomAndPan();
         } else {
@@ -559,6 +556,8 @@
             
             if (activeStage === 'eleme') titleEl.innerText = "Mini Sumo Robot Yarışması (Ön Eleme Turları)";
             else if (activeStage === 'r64') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 64 Maçları)";
+            else if (activeStage === 'r32') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 32 Maçları)";
+            else if (activeStage === 'r16') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 16 Maçları)";
             
             renderStageGrid();
         }
@@ -569,21 +568,30 @@
         gridContainer.innerHTML = '';
         
         let matchPrefix = activeStage; 
-        let maxCount = 32;
-        let title = "SON 64";
+        let maxCount = 16;
+        let title = "SON 32";
 
         if (activeStage === 'eleme') {
             const elemeKeys = Object.keys(allMatches).filter(k => k.startsWith('eleme_'));
             maxCount = elemeKeys.length > 0 ? Math.max(...elemeKeys.map(k => parseInt(k.split('_')[1]) || 1)) : 16;
             title = "ÖN ELEME";
+        } else if (activeStage === 'r64') {
+            maxCount = 32;
+            title = "SON 64";
+        } else if (activeStage === 'r32') {
+            maxCount = 16;
+            title = "SON 32";
+        } else if (activeStage === 'r16') {
+            maxCount = 8;
+            title = "SON 16";
         }
 
         for (let i = 1; i <= maxCount; i++) {
             const matchKey = `${matchPrefix}_${i}`;
             const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
             
-            const isT1Winner = m.winner && m.winner === m.t1;
-            const isT2Winner = m.winner && m.winner === m.t2;
+            const isT1Winner = m.winner && m.winner.toString().trim() === m.t1.toString().trim();
+            const isT2Winner = m.winner && m.winner.toString().trim() === m.t2.toString().trim();
 
             const card = document.createElement('div');
             card.className = "matchup-box";
@@ -616,13 +624,11 @@
         centerStage.innerHTML = '';
 
         const roundLabels = {
-            'r32': 'SON 32',
-            'r16': 'SON 16',
             'qf': 'ÇEYREK FİNAL',
             'sf': 'YARI FİNAL'
         };
 
-        const counts = { 'r32': 16, 'r16': 8, 'qf': 4, 'sf': 2 };
+        const counts = { 'qf': 4, 'sf': 2 };
 
         // 1. Sol ve Sağ Kanat Kolonlarını Ekle (Final hariç turlar)
         roundsList.forEach((roundKey) => {
@@ -645,15 +651,12 @@
             rightCol.id = `col-right-${roundKey}`;
             
             for (let i = halfMatches + 1; i <= totalMatches; i++) {
-                // Sağ kanatta maçların sıralamasını koruyarak dikey yerleştir
                 createMatchBox(rightCol, roundKey, i, roundLabels[roundKey]);
             }
             rightWing.appendChild(rightCol);
         });
 
         // 2. Merkez Sütunu Oluştur (Şampiyonluk Kupası üstte, Büyük Final altta)
-        
-        // Üst: Şampiyonluk Kartı
         const champBox = document.createElement('div');
         champBox.id = "col-champ";
         champBox.className = "w-full max-w-[280px]";
@@ -661,25 +664,77 @@
         const finalMatch = allMatches['f_1'] || { winner: '' };
         const champName = (allMatches['champ'] && allMatches['champ'].winner) || finalMatch.winner || 'KUPA BEKLENİYOR';
 
-        champBox.innerHTML = `
-            <div class="bg-gradient-to-b from-amber-500/20 to-yellow-600/5 border-2 border-yellow-500/50 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden w-full">
-                <div class="absolute -top-10 -left-10 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl"></div>
-                <i class="fas fa-crown text-5xl text-yellow-400 mb-3 animate-bounce"></i>
-                <h4 class="text-xs font-black tracking-widest text-yellow-500 uppercase mb-1">ŞAMPİYON</h4>
-                <div class="text-lg font-extrabold text-white truncate">${champName}</div>
-                <p class="text-[10px] text-slate-400 mt-2 font-semibold">TÜRKİYE STEM YARIŞMASI</p>
-            </div>
-        `;
-        centerStage.appendChild(champBox);
+        // Çeyrek Final sekmesinde kupa, Yarı Final sekmesinde eşleşme ortasına kupa,
+        // Büyük Final sekmesinde ise parıltılı neon taç ve şampiyon efekti eklenir.
+        if (activeStage === 'qf') {
+            champBox.innerHTML = `
+                <div class="bg-[#161a2e] border border-slate-700/60 rounded-2xl p-6 text-center shadow-xl w-full">
+                    <div class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-500/20">
+                        <i class="fas fa-trophy text-4xl text-amber-400"></i>
+                    </div>
+                    <h4 class="text-xs font-black tracking-widest text-slate-400 uppercase mb-1">ŞAMPİYONLUK KUPASI</h4>
+                    <div class="text-base font-extrabold text-slate-300 truncate">${champName}</div>
+                </div>
+            `;
+            centerStage.appendChild(champBox);
 
-        // Alt: Büyük Final Kutusu (Sol Şampiyonu vs Sağ Şampiyonu)
+            // Çeyrek finaldeyken merkezde final maç kutusu bulunur
+            const finalBox = createFinalBoxHTML(finalMatch);
+            centerStage.appendChild(finalBox);
+        } else if (activeStage === 'sf') {
+            // YARI FİNAL SEKİR TASARIMI: Eşleşmelerin tam ortasında prestijli kupa bulunur
+            champBox.innerHTML = `
+                <div class="bg-gradient-to-b from-amber-500/15 to-transparent border border-amber-500/20 rounded-2xl p-6 text-center shadow-2xl w-full">
+                    <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-500/30">
+                        <i class="fas fa-trophy text-5xl text-amber-400 animate-pulse"></i>
+                    </div>
+                    <h4 class="text-xs font-black tracking-widest text-amber-400 uppercase mb-1">YARI FİNAL</h4>
+                    <div class="text-sm font-extrabold text-white truncate">ŞAMPİYONLUĞA SON ADIM</div>
+                </div>
+            `;
+            centerStage.appendChild(champBox);
+
+            // Yarı finaldeyken de final maç kutusu kupanın altında yer alır
+            const finalBox = createFinalBoxHTML(finalMatch);
+            centerStage.appendChild(finalBox);
+        } else {
+            // BÜYÜK FİNAL SEKİR TASARIMI: Şampiyonluk neon ve taç efektleri aktif
+            champBox.innerHTML = `
+                <div class="bg-gradient-to-b from-amber-500/25 to-yellow-600/5 border-2 border-yellow-500/50 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden w-full">
+                    <div class="absolute -top-10 -left-10 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl"></div>
+                    <div class="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 border border-yellow-500/40">
+                        <i class="fas fa-trophy text-4xl text-yellow-400"></i>
+                    </div>
+                    <i class="fas fa-crown text-3xl text-yellow-400 absolute top-4 right-4 animate-bounce"></i>
+                    <h4 class="text-xs font-black tracking-widest text-yellow-500 uppercase mb-1">ŞAMPİYON</h4>
+                    <div class="text-lg font-extrabold text-white truncate" style="
+                        background: var(--gold-gradient);
+                        background-size: 200% auto;
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        animation: shine-gold 2.5s linear infinite;
+                    ">${champName}</div>
+                    <p class="text-[10px] text-slate-400 mt-2 font-semibold">TÜRKİYE STEM YARIŞMASI</p>
+                </div>
+            `;
+            centerStage.appendChild(champBox);
+
+            const finalBox = createFinalBoxHTML(finalMatch);
+            centerStage.appendChild(finalBox);
+        }
+
+        // 3. Bağlantı Çizgilerini Çiz
+        setTimeout(() => drawDualWingConnections(roundsList), 150);
+    }
+
+    function createFinalBoxHTML(finalMatch) {
         const finalBox = document.createElement('div');
         finalBox.className = "matchup-box";
         finalBox.id = "box-f_1";
         finalBox.style.transform = "scale(1.15)";
         
-        const isT1Winner = finalMatch.winner && finalMatch.winner === finalMatch.t1;
-        const isT2Winner = finalMatch.winner && finalMatch.winner === finalMatch.t2;
+        const isT1Winner = finalMatch.winner && finalMatch.winner.toString().trim() === finalMatch.t1.toString().trim();
+        const isT2Winner = finalMatch.winner && finalMatch.winner.toString().trim() === finalMatch.t2.toString().trim();
 
         finalBox.innerHTML = `
             <div class="match-label">
@@ -695,18 +750,15 @@
                 <span class="score-badge-box">${finalMatch.s2}</span>
             </div>
         `;
-        centerStage.appendChild(finalBox);
-
-        // 3. Bağlantı Çizgilerini Çiz
-        setTimeout(() => drawDualWingConnections(roundsList), 150);
+        return finalBox;
     }
 
     function createMatchBox(parent, roundKey, i, label) {
         const matchKey = `${roundKey}_${i}`;
         const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
         
-        const isT1Winner = m.winner && m.winner === m.t1;
-        const isT2Winner = m.winner && m.winner === m.t2;
+        const isT1Winner = m.winner && m.winner.toString().trim() === m.t1.toString().trim();
+        const isT2Winner = m.winner && m.winner.toString().trim() === m.t2.toString().trim();
 
         const box = document.createElement('div');
         box.className = "matchup-box";
@@ -729,9 +781,9 @@
     }
 
     function drawDinamikConnectionsOnResize() {
-        const roundsList = activeStage === 'r32' 
-            ? ['r32', 'r16', 'qf', 'sf'] 
-            : (activeStage === 'r16' ? ['r16', 'qf', 'sf'] : ['qf', 'sf']);
+        const roundsList = activeStage === 'qf' 
+            ? ['qf', 'sf'] 
+            : (activeStage === 'sf' ? ['sf'] : []);
         drawDualWingConnections(roundsList);
     }
 
@@ -741,7 +793,7 @@
         if (!svg) return;
         svg.innerHTML = '';
 
-        const counts = { 'r32': 16, 'r16': 8, 'qf': 4, 'sf': 2 };
+        const counts = { 'qf': 4, 'sf': 2 };
 
         for (let r = 0; r < roundsList.length - 1; r++) {
             const currentRound = roundsList[r];
@@ -762,7 +814,6 @@
             // Sağ Kanat Çizgileri (Sağdan Sola doğru bağlanır)
             for (let m = halfCount + 1; m <= currentCount; m++) {
                 const startCard = document.getElementById(`box-${currentRound}_${m}`);
-                // Sağ taraftaki yarı maçların dikey katlanma oranını doğru koru
                 const offsetMatchIndex = m - halfCount;
                 const nextMatchIndex = Math.ceil(offsetMatchIndex / 2) + (counts[nextRound] / 2);
                 const endCard = document.getElementById(`box-${nextRound}_${nextMatchIndex}`);
@@ -800,11 +851,10 @@
 
         let startX, endX;
         
-        // Sol kanatta bağlantılar sağ kenardan, sağ kanatta ise sol kenardan başlar
         if (direction === "left" || direction === "left-final") {
             startX = (rect1.right - containerRect.left) / scale;
             endX = (rect2.left - containerRect.left) / scale;
-        } else { // right veya right-final
+        } else { 
             startX = (rect1.left - containerRect.left) / scale;
             endX = (rect2.right - containerRect.left) / scale;
         }
@@ -830,10 +880,10 @@
         const containerRect = zoomCanvas.getBoundingClientRect();
 
         const startX = (rect1.left + rect1.width / 2 - containerRect.left) / scale;
-        const startY = (rect1.top - containerRect.top) / scale; // Üst kenardan kupa altına
+        const startY = (rect1.top - containerRect.top) / scale; 
         
         const endX = (rect2.left + rect2.width / 2 - containerRect.left) / scale;
-        const endY = (rect2.bottom - containerRect.top) / scale; // Kupanın alt kenarına
+        const endY = (rect2.bottom - containerRect.top) / scale; 
 
         const midY = startY + (endY - startY) / 2;
 
