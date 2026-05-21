@@ -1,909 +1,1452 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STEM Mini Sumo Dinamik Canlı Skor ve Eşleşme Tablosu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Montserrat', 'sans-serif'],
-                    },
-                    colors: {
-                        darkBg: '#080a11',
-                        cardBg: '#111422',
-                        vurgu: '#00f2ff',
-                        altin: '#ffd700',
-                        gumus: '#c0c0c0',
-                        bronz: '#cd7f32',
-                        metin: '#e0e0e0',
-                        beyaz: '#ffffff',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --ana-renk: #080a11;
-            --kart-bg: #111422;
-            --vurgu: #00f2ff;
-            --altin: #ffd700;
-            --gumus: #c0c0c0;
-            --bronz: #cd7f32;
-            --metin: #e0e0e0;
-            --beyaz: #ffffff;
-            --status-color: #00ff88;
-            --gold-gradient: linear-gradient(90deg, #b8860b 0%, #ffd700 25%, #ffface 50%, #ffd700 75%, #b8860b 100%);
-            --header-gradient: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 50%, #00d2ff 100%);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Türkiye STEM Yarışması | Mini Sumo Sonuçları</title>
 
-        body.light-theme {
-            --ana-renk: #f0f4f8 !important;
-            --kart-bg: #ffffff !important;
-            --vurgu: #000080 !important;
-            --metin: #000033 !important;
-            --altin: #a67c00 !important;
-            --beyaz: #000033 !important;
-            --status-color: #000080 !important;
-        }
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-        * { transition: background-color 0.3s ease, color 0.3s ease; box-sizing: border-box; }
+  <style>
+    :root {
+      --bg: #06101f;
+      --panel: rgba(8, 18, 36, 0.82);
+      --panel-strong: rgba(12, 24, 45, 0.96);
+      --card: rgba(17, 30, 52, 0.88);
+      --slot: rgba(255,255,255,0.045);
+      --border: rgba(255,255,255,0.12);
+      --text: #eef6ff;
+      --muted: #9fb2cc;
+      --cyan: #19d9ff;
+      --blue: #2d8cff;
+      --gold: #ffd21f;
+      --gold-2: #b77900;
+      --green: #00ff88;
+      --red: #ff4d6d;
+      --line: rgba(232, 246, 255, 0.82);
+      --shadow: rgba(0,0,0,0.35);
+    }
 
-        body { 
-            background-color: var(--ana-renk); 
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            color: var(--metin);
-            height: 100vh; width: 100vw;
-            overflow: hidden;
-        }
+    * { box-sizing: border-box; }
 
-        .board-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Montserrat', 'Segoe UI', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 6%, rgba(255, 210, 31, 0.15), transparent 26%),
+        radial-gradient(circle at 16% 34%, rgba(25, 217, 255, 0.12), transparent 30%),
+        radial-gradient(circle at 86% 72%, rgba(45, 140, 255, 0.10), transparent 34%),
+        linear-gradient(135deg, #030712 0%, #07111f 45%, #0b1021 100%);
+      overflow: hidden;
+    }
 
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 40px;
-            background: rgba(0,0,0,0.4);
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            flex-shrink: 0;
-        }
+    body.light-theme {
+      --bg: #f6f8fc;
+      --panel: rgba(255,255,255,0.82);
+      --panel-strong: rgba(255,255,255,0.96);
+      --card: rgba(255,255,255,0.94);
+      --slot: rgba(15, 23, 42, 0.045);
+      --border: rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --muted: #475569;
+      --cyan: #0369a1;
+      --blue: #2563eb;
+      --gold: #92400e;
+      --gold-2: #b77900;
+      --green: #059669;
+      --red: #dc2626;
+      --line: rgba(71, 85, 105, 0.70);
+      --shadow: rgba(15,23,42,0.12);
+      background:
+        radial-gradient(circle at 48% 8%, rgba(251, 191, 36, 0.15), transparent 30%),
+        radial-gradient(circle at 16% 34%, rgba(14, 165, 233, 0.12), transparent 32%),
+        linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #eaf1f8 100%);
+    }
 
-        .header h2 { 
-            margin: 0; font-size: 1.8rem; font-weight: 900;
-            background: var(--header-gradient);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine-blue 3s linear infinite;
-            width: 250px;
-        }
+    button { font-family: inherit; }
 
-        .project-center-title { text-align: center; flex-grow: 1; }
-        .main-title {
-            font-size: 2.2rem; font-weight: 900; letter-spacing: 3px;
-            background: var(--gold-gradient);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine-gold 2.5s linear infinite;
-            text-transform: uppercase;
-        }
-        .sub-title { font-size: 1.1rem; color: #d4af37; font-weight: 700; margin-top: -5px; }
+    .page {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-        @keyframes shine-gold { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
-        @keyframes shine-blue { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+    .topbar {
+      display: grid;
+      grid-template-columns: 320px 1fr 230px;
+      align-items: center;
+      gap: 18px;
+      min-height: 88px;
+      padding: 12px 24px;
+      background: rgba(5, 10, 24, 0.88);
+      border-bottom: 1px solid rgba(255, 210, 31, 0.22);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+      backdrop-filter: blur(14px) saturate(130%);
+      z-index: 50;
+    }
 
-        .status-block { display: flex; flex-direction: column; align-items: flex-end; width: 250px; }
-        .digital-clock { font-size: 1.8rem; font-family: monospace; font-weight: bold; color: var(--beyaz); text-shadow: 0 0 10px var(--vurgu); }
-        
-        .system-status { font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--beyaz); margin-top: 5px; }
-        .status-dot { height: 10px; width: 10px; background-color: #00ff88; border-radius: 50%; animation: pulse-glow 1.5s infinite; }
-        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
+    body.light-theme .topbar {
+      background: rgba(255,255,255,0.94);
+      border-bottom-color: rgba(15,23,42,0.10);
+      box-shadow: 0 10px 26px rgba(15,23,42,0.10);
+    }
 
-        /* Sürükle ve Yakınlaştır (Pan & Zoom) Viewport Tasarımı */
-        .bracket-view-container {
-            display: none;
-            flex-grow: 1;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-            cursor: grab;
-            background: radial-gradient(circle at center, rgba(16, 20, 38, 0.2) 0%, rgba(8, 10, 17, 1) 100%);
-        }
-        .bracket-view-container:active {
-            cursor: grabbing;
-        }
+    .left-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
 
-        /* Çift Kanatlı (Dual-Wing) Ağacın Taşıyıcı Kanvası */
-        .zoom-canvas {
-            position: absolute;
-            transform-origin: 0 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            padding: 100px;
-            min-height: 100%;
-            min-width: 100%;
-        }
+    .home-btn,
+    .top-control-btn {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
 
-        /* Sol Kanat Grubu */
-        .left-wing {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            justify-content: flex-end;
-        }
+    .home-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      font-size: 21px;
+    }
 
-        /* Sağ Kanat Grubu */
-        .right-wing {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            flex-direction: row-reverse;
-            justify-content: flex-start;
-        }
+    .top-control-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      font-size: 15px;
+    }
 
-        /* Merkez (Büyük Final ve Şampiyon) Sütunu */
-        .center-stage {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 320px;
-            flex-shrink: 0;
-            z-index: 20;
-            gap: 40px;
-        }
+    body.light-theme .home-btn,
+    body.light-theme .top-control-btn {
+      background: #f8fafc;
+      border-color: rgba(15,23,42,0.13);
+      color: #0f172a;
+      box-shadow: 0 6px 16px rgba(15,23,42,0.08);
+    }
 
-        .round-column {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            height: 100%;
-            flex-shrink: 0;
-            width: 250px;
-            position: relative;
-            z-index: 10;
-            gap: 15px;
-        }
+    .panel-title {
+      margin: 0;
+      font-size: clamp(1.25rem, 1.8vw, 1.9rem);
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #00d2ff 0%, #4aa3ff 45%, #00f2ff 70%, #00d2ff 100%);
+      background-size: 240% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(32,184,255,0.28));
+      animation: titleBlueShine 9s linear infinite;
+    }
 
-        .matchup-box {
-            background: var(--kart-bg);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 8px 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            width: 100%;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .matchup-box:hover {
-            border-color: var(--vurgu);
-            transform: scale(1.02);
-        }
+    @keyframes titleBlueShine {
+      0% { background-position: -180% center; }
+      100% { background-position: 180% center; }
+    }
 
-        .match-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--vurgu);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 2px;
-            display: flex;
-            justify-content: space-between;
-        }
+    body.light-theme .panel-title {
+      background: linear-gradient(90deg, #0369a1 0%, #2563eb 48%, #0284c7 72%, #0369a1 100%);
+      background-size: 240% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: none;
+    }
 
-        .team-slot-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 10px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
-            border: 1px solid transparent;
-            min-height: 38px;
-        }
+    .main-title {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 0 10px;
+      overflow: visible;
+    }
 
-        .team-slot-row.winner {
-            background: rgba(0, 255, 136, 0.08);
-            border-color: rgba(0, 255, 136, 0.3);
-            color: #00ff88;
-        }
+    .main-title .kicker {
+      margin: 0;
+      padding: 6px 0 9px;
+      font-size: clamp(1.55rem, 2.85vw, 2.38rem);
+      line-height: 1.18;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #b8860b 0%, #ffd21f 22%, #fff4a8 48%, #ffd21f 72%, #b8860b 100%);
+      background-size: 260% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(255,210,31,0.18));
+      animation: titleGoldShine 8s linear infinite;
+      overflow: visible;
+    }
 
-        .team-slot-row.winner .score-badge-box {
-            color: #080a11;
-            background: #00ff88;
-        }
+    @keyframes titleGoldShine {
+      0% { background-position: 180% center; }
+      100% { background-position: -180% center; }
+    }
 
-        .team-slot-row.loser {
-            opacity: 0.4;
-        }
+    .main-title .subtitle {
+      margin-top: 8px;
+      font-size: clamp(0.82rem, 1.2vw, 1.05rem);
+      line-height: 1.1;
+      font-weight: 850;
+      color: #f3c94a;
+    }
 
-        .score-badge-box {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-weight: 900;
-            color: var(--altin);
-            font-size: 0.8rem;
-        }
+    body.light-theme .main-title .kicker {
+      background: linear-gradient(90deg, #7c2d12 0%, #b77900 25%, #d97706 48%, #b77900 75%, #7c2d12 100%);
+      background-size: 260% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: none;
+      animation: titleGoldShine 8s linear infinite;
+    }
 
-        /* Grid Görünüm Alanı */
-        .grid-view-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px 40px;
-            overflow-y: auto;
-        }
+    body.light-theme .main-title .subtitle {
+      color: #475569;
+      text-shadow: none;
+    }
 
-        /* SVG Bağlantı Çizgileri Alanı */
-        .svg-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
+    .right-head {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 7px;
+      min-width: 0;
+      overflow: hidden;
+    }
 
-        .footer-info { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(0,0,0,0.4); flex-shrink: 0; }
-        .controls { display: flex; align-items: center; gap: 20px; }
-        .icon-btn { cursor: pointer; font-size: 1.3rem; color: var(--beyaz); opacity: 0.7; transition: 0.3s; }
-        .icon-btn:hover { opacity: 1; color: var(--altin); }
-    </style>
+    .clock {
+      max-width: 100%;
+      font-family: monospace;
+      font-size: clamp(1.08rem, 1.6vw, 1.55rem);
+      font-weight: 900;
+      color: #e9fbff;
+      white-space: nowrap;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(25,217,255,0.52);
+    }
+
+    body.light-theme .clock {
+      color: #0f172a;
+      text-shadow: none;
+    }
+
+    .live-pill {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      max-width: 100%;
+      padding: 9px 15px;
+      border: 1px solid rgba(0,255,136,0.34);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(0,255,136,0.16), rgba(0,255,136,0.055));
+      color: #f8fffb;
+      font-size: 0.76rem;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow:
+        0 0 22px rgba(0,255,136,0.20),
+        inset 0 0 18px rgba(0,255,136,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      overflow: hidden;
+    }
+
+    .live-pill::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 18px 50%, rgba(0,255,136,0.34), transparent 34%);
+      pointer-events: none;
+    }
+
+    .live-pill span {
+      position: relative;
+      z-index: 2;
+    }
+
+    body.light-theme .live-pill {
+      background: linear-gradient(135deg, rgba(5,150,105,0.16), rgba(5,150,105,0.06));
+      color: #064e3b;
+      border-color: rgba(5,150,105,0.28);
+      box-shadow: 0 0 18px rgba(5,150,105,0.12), inset 0 1px 0 rgba(255,255,255,0.65);
+    }
+
+    .live-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #00ff88;
+      box-shadow:
+        0 0 0 4px rgba(0,255,136,0.12),
+        0 0 12px rgba(0,255,136,0.95),
+        0 0 26px rgba(0,255,136,0.68);
+      animation: pulseLive 1.35s infinite ease-in-out;
+      flex-shrink: 0;
+    }
+
+    .live-dot.warn { background: var(--gold); box-shadow: 0 0 8px var(--gold), 0 0 18px rgba(255,215,0,0.55); }
+    .live-dot.err { background: var(--red); box-shadow: 0 0 8px var(--red), 0 0 18px rgba(255,77,109,0.55); }
+
+    @keyframes pulseLive {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.78; }
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .stage-menu {
+      z-index: 45;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(5, 10, 24, 0.82);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body.light-theme .stage-menu {
+      background: rgba(255,255,255,0.92);
+      border-bottom-color: rgba(15,23,42,0.08);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    .stage-btn {
+      height: 38px;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex: 0 0 auto;
+      padding: 0 13px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.075);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: transform .16s ease, color .16s ease, background .16s ease;
+    }
+
+    .stage-btn:hover { transform: translateY(-1px); color: var(--text); }
+    .stage-btn.tree { color: var(--gold); border-color: rgba(255,210,31,0.22); }
+    .stage-btn.active { background: linear-gradient(135deg, var(--cyan), var(--blue)); color: #06111f; border-color: rgba(25,217,255,0.42); }
+    .stage-btn.final.active { background: linear-gradient(135deg, #ffd21f, #ff9f1a); color: #06111f; border-color: rgba(255,210,31,0.42); }
+
+    body.light-theme .stage-btn {
+      background: #ffffff;
+      color: #334155;
+      border-color: rgba(15,23,42,0.12);
+      box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+    }
+
+    body.light-theme .stage-btn.tree { color: #92400e; border-color: rgba(183,121,0,0.20); }
+    body.light-theme .stage-btn.active { background: #dbeafe; color: #075985; border-color: rgba(3,105,161,0.25); }
+    body.light-theme .stage-btn.final.active { background: #fde68a; color: #422006; border-color: rgba(183,121,0,0.26); }
+
+    .stage-icon,
+    .stage-trophy-img {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      object-fit: contain;
+    }
+
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 10px 14px;
+      overflow: hidden;
+    }
+
+    .grid-wrap {
+      max-width: 1560px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .grid-view {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .pagination {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      min-width: 94px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,210,31,0.22);
+      background: rgba(255,255,255,0.06);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .page-btn.active { background: linear-gradient(135deg, #ffd21f, #ff9f1a); color: #06111f; }
+    body.light-theme .page-btn { background: #ffffff; color: #92400e; border-color: rgba(183,121,0,0.18); }
+    body.light-theme .page-btn.active { background: #fde68a; color: #422006; }
+
+    .bracket-view {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background:
+        radial-gradient(circle at 50% 48%, rgba(255,210,31,0.09), transparent 36%),
+        radial-gradient(circle at 18% 30%, rgba(25,217,255,0.08), transparent 32%),
+        linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018));
+      backdrop-filter: blur(16px) saturate(125%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 60px rgba(0,0,0,0.22);
+    }
+
+    body.light-theme .bracket-view {
+      background:
+        radial-gradient(circle at 50% 48%, rgba(255,255,255,0.82), transparent 42%),
+        radial-gradient(circle at 50% 50%, rgba(251,191,36,0.08), transparent 36%),
+        linear-gradient(135deg, rgba(255,255,255,0.88), rgba(241,245,249,0.70));
+      border-color: rgba(15,23,42,0.08);
+      box-shadow: 0 18px 44px rgba(15,23,42,0.08);
+    }
+
+    .split-bracket-stage {
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      width: 100%;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 230px minmax(0, 1fr);
+      align-items: center;
+      justify-items: center;
+      gap: 116px;
+      padding: 18px 20px;
+      overflow: visible;
+      transform-origin: center center;
+    }
+
+    .wing-bracket {
+      position: relative;
+      height: 520px;
+      width: 100%;
+      min-width: 0;
+      z-index: 5;
+    }
+
+    .bracket-node {
+      position: absolute;
+      width: 190px;
+      z-index: 9;
+      overflow: visible;
+    }
+
+    .left-bracket .node-r16 { left: 0; }
+    .left-bracket .node-qf { left: 245px; }
+    .left-bracket .node-sf { left: 395px; }
+    .right-bracket .node-r16 { right: 0; }
+    .right-bracket .node-qf { right: 245px; }
+    .right-bracket .node-sf { right: 395px; }
+
+    .slot-y1 { top: 0; }
+    .slot-y2 { top: 122px; }
+    .slot-y3 { top: 276px; }
+    .slot-y4 { top: 398px; }
+    .slot-q1 { top: 62px; }
+    .slot-q2 { top: 338px; }
+    .slot-s1 { top: 200px; }
+
+    .bracket-lines { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    .line-h, .line-v { position: absolute; background: var(--line); box-shadow: 0 0 8px rgba(25,217,255,0.18); }
+    .line-h { height: 3px; }
+    .line-v { width: 3px; }
+
+    .left-bracket .h-r16-1 { left: 190px; top: 57px; width: 40px; }
+    .left-bracket .h-r16-2 { left: 190px; top: 179px; width: 40px; }
+    .left-bracket .v-r16-a { left: 230px; top: 57px; height: 122px; }
+    .left-bracket .h-r16-mid-a { left: 230px; top: 118px; width: 25px; }
+    .left-bracket .h-r16-3 { left: 190px; top: 333px; width: 40px; }
+    .left-bracket .h-r16-4 { left: 190px; top: 455px; width: 40px; }
+    .left-bracket .v-r16-b { left: 230px; top: 333px; height: 122px; }
+    .left-bracket .h-r16-mid-b { left: 230px; top: 394px; width: 25px; }
+    .left-bracket .h-qf-1 { left: 435px; top: 118px; width: 8px; }
+    .left-bracket .h-qf-2 { left: 435px; top: 394px; width: 8px; }
+    .left-bracket .v-qf { left: 443px; top: 118px; height: 276px; }
+    .left-bracket .h-qf-mid { left: 443px; top: 256px; width: 0; }
+    .left-bracket .h-sf-final { left: 585px; top: 256px; width: 70px; background: rgba(255,210,31,0.78); }
+
+    .right-bracket .h-r16-1 { right: 190px; top: 57px; width: 40px; }
+    .right-bracket .h-r16-2 { right: 190px; top: 179px; width: 40px; }
+    .right-bracket .v-r16-a { right: 230px; top: 57px; height: 122px; }
+    .right-bracket .h-r16-mid-a { right: 230px; top: 118px; width: 25px; }
+    .right-bracket .h-r16-3 { right: 190px; top: 333px; width: 40px; }
+    .right-bracket .h-r16-4 { right: 190px; top: 455px; width: 40px; }
+    .right-bracket .v-r16-b { right: 230px; top: 333px; height: 122px; }
+    .right-bracket .h-r16-mid-b { right: 230px; top: 394px; width: 25px; }
+    .right-bracket .h-qf-1 { right: 435px; top: 118px; width: 8px; }
+    .right-bracket .h-qf-2 { right: 435px; top: 394px; width: 8px; }
+    .right-bracket .v-qf { right: 443px; top: 118px; height: 276px; }
+    .right-bracket .h-qf-mid { right: 443px; top: 256px; width: 0; }
+    .right-bracket .h-sf-final { right: 585px; top: 256px; width: 70px; background: rgba(255,210,31,0.78); }
+
+    .split-bracket-stage.stage-qf { grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr); gap: 96px; padding: 34px 56px; }
+    .stage-qf .wing-bracket { height: 540px; }
+    .stage-qf .bracket-node { width: 250px; }
+    .stage-qf .left-bracket .node-qf { left: 0; }
+    .stage-qf .left-bracket .node-sf { left: 300px; }
+    .stage-qf .right-bracket .node-qf { right: 0; }
+    .stage-qf .right-bracket .node-sf { right: 300px; }
+    .stage-qf .slot-q1 { top: 68px; }
+    .stage-qf .slot-q2 { top: 348px; }
+    .stage-qf .slot-s1 { top: 208px; }
+    .stage-qf .left-bracket .h-qf-1 { left: 250px; top: 137px; width: 25px; }
+    .stage-qf .left-bracket .h-qf-2 { left: 250px; top: 417px; width: 25px; }
+    .stage-qf .left-bracket .v-qf { left: 275px; top: 137px; height: 280px; }
+    .stage-qf .left-bracket .h-qf-mid { left: 275px; top: 277px; width: 25px; }
+    .stage-qf .left-bracket .h-sf-final { left: 550px; top: 277px; width: 95px; }
+    .stage-qf .right-bracket .h-qf-1 { right: 250px; top: 137px; width: 25px; }
+    .stage-qf .right-bracket .h-qf-2 { right: 250px; top: 417px; width: 25px; }
+    .stage-qf .right-bracket .v-qf { right: 275px; top: 137px; height: 280px; }
+    .stage-qf .right-bracket .h-qf-mid { right: 275px; top: 277px; width: 25px; }
+    .stage-qf .right-bracket .h-sf-final { right: 550px; top: 277px; width: 95px; }
+
+    .split-bracket-stage.stage-sf { grid-template-columns: minmax(0, 1fr) 380px minmax(0, 1fr); gap: 86px; padding: 46px 70px; }
+    .stage-sf .wing-bracket { height: 540px; }
+    .stage-sf .bracket-node { width: 320px; }
+    .stage-sf .left-bracket .node-sf { left: 50%; transform: translateX(-50%); }
+    .stage-sf .right-bracket .node-sf { right: 50%; transform: translateX(50%); }
+    .stage-sf .slot-s1 { top: 190px; }
+    .stage-sf .left-bracket .h-sf-final { left: calc(50% + 160px); top: 285px; width: 145px; }
+    .stage-sf .right-bracket .h-sf-final { right: calc(50% + 160px); top: 285px; width: 145px; }
+
+    .match {
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(145deg, rgba(17,30,52,0.78), rgba(7,11,24,0.64));
+      padding: 7px;
+      backdrop-filter: blur(14px) saturate(130%);
+      box-shadow: 0 14px 34px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+
+    body.light-theme .match {
+      background: #ffffff;
+      border-color: rgba(15,23,42,0.10);
+      box-shadow: 0 12px 28px rgba(15,23,42,0.09);
+    }
+
+    .match::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(25,217,255,0.06), transparent 50%, rgba(255,210,31,0.04));
+      pointer-events: none;
+    }
+
+    body.light-theme .match::before { display: none; }
+    .match.finished { border-color: rgba(255,210,31,0.34); }
+
+    .match-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      color: var(--cyan);
+      font-size: 9px;
+      font-weight: 950;
+      padding-bottom: 4px;
+      margin-bottom: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    body.light-theme .match-head { border-bottom-color: rgba(15,23,42,0.08); }
+
+    .slot {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      margin-top: 4px;
+      padding: 5px 7px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      background: var(--slot);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    body.light-theme .slot { color: #1e293b; }
+    .slot .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.15; }
+    .slot .score { min-width: 23px; text-align: center; border-radius: 7px; padding: 2px 5px; background: rgba(0,0,0,0.34); color: var(--gold); font-weight: 950; }
+    body.light-theme .slot .score { background: #e2e8f0; color: #92400e; }
+    .slot.winner { color: var(--green); border-color: rgba(0,255,136,0.27); background: rgba(0,255,136,0.08); }
+    .slot.winner .score { color: #06111f; background: var(--green); }
+    body.light-theme .slot.winner .score { color: #ffffff; }
+    .slot.loser { opacity: .48; }
+    .slot.empty { opacity: .62; font-style: italic; }
+
+    .stage-qf .match { padding: 11px; border-radius: 20px; }
+    .stage-qf .match-head { font-size: 12px; padding-bottom: 7px; margin-bottom: 8px; }
+    .stage-qf .slot { min-height: 44px; padding: 10px 12px; font-size: 14px; border-radius: 14px; }
+    .stage-qf .slot .score { min-width: 34px; padding: 5px 8px; }
+    .stage-sf .match { padding: 16px; border-radius: 26px; }
+    .stage-sf .match-head { font-size: 15px; padding-bottom: 10px; margin-bottom: 12px; }
+    .stage-sf .slot { min-height: 60px; padding: 14px 16px; font-size: 18px; border-radius: 18px; }
+    .stage-sf .slot .score { min-width: 46px; padding: 7px 11px; border-radius: 12px; }
+
+    .center-cup {
+      position: relative;
+      z-index: 3;
+      width: 230px;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .center-cup.pre-final {
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .trophy-stage {
+      position: relative;
+      width: 220px;
+      height: 315px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    .trophy-stage::before {
+      content: "";
+      position: absolute;
+      inset: 20px 16px 8px;
+      border-radius: 36px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,210,31,0.30), transparent 34%),
+        linear-gradient(180deg, rgba(255,210,31,0.10), transparent 72%);
+      filter: blur(18px);
+      opacity: .72;
+      animation: goldPulse 3.8s ease-in-out infinite alternate;
+    }
+
+    .trophy-stage::after {
+      content: "";
+      position: absolute;
+      inset: 18px 18px 8px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,210,31,0.28), transparent 42%),
+        radial-gradient(circle at 50% 75%, rgba(255,210,31,0.38), transparent 30%);
+      filter: blur(14px);
+      opacity: .9;
+      animation: goldPulse 2.1s ease-in-out infinite alternate;
+    }
+
+    .trophy-stage .trophy-img {
+      position: relative;
+      z-index: 3;
+      width: min(190px, 90%);
+      max-height: 275px;
+      filter: drop-shadow(0 0 14px rgba(255,210,31,0.42)) drop-shadow(0 20px 30px rgba(0,0,0,0.44));
+    }
+
+    .spark-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.95) 0 2px, transparent 3px),
+        radial-gradient(circle at 82% 40%, rgba(255,210,31,0.95) 0 2px, transparent 3px),
+        radial-gradient(circle at 20% 66%, rgba(255,210,31,0.85) 0 1.8px, transparent 3px),
+        radial-gradient(circle at 62% 86%, rgba(255,255,255,0.80) 0 1.5px, transparent 3px);
+      filter: drop-shadow(0 0 8px rgba(255,210,31,0.85));
+      animation: sparkRotate 7s linear infinite;
+      z-index: 2;
+    }
+
+    @keyframes goldPulse {
+      from { opacity: .50; transform: scale(.98); }
+      to { opacity: .92; transform: scale(1.05); }
+    }
+
+    @keyframes sparkRotate {
+      to { transform: rotate(360deg); }
+    }
+
+    .cup-card {
+      position: relative;
+      overflow: hidden;
+      width: 235px;
+      min-height: 335px;
+      padding: 16px 12px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,210,31,0.24);
+      background:
+        radial-gradient(circle at 50% 22%, rgba(255,210,31,0.16), transparent 42%),
+        linear-gradient(180deg, rgba(20,26,45,0.72), rgba(7,10,20,0.64));
+      backdrop-filter: blur(18px) saturate(135%);
+      box-shadow: 0 30px 86px rgba(0,0,0,0.42), 0 0 70px rgba(255,210,31,0.10), inset 0 1px 0 rgba(255,255,255,0.08);
+      text-align: center;
+    }
+
+    body.light-theme .cup-card,
+    body.light-theme .champion-panel,
+    body.light-theme .final-scoreboard {
+      background: #ffffff;
+      border-color: rgba(183,121,0,0.20);
+      box-shadow: 0 18px 42px rgba(15,23,42,0.12);
+    }
+
+    .cup-card::before,
+    .champion-panel::before {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background: conic-gradient(from 90deg, transparent, rgba(255,210,31,0.13), transparent 26%);
+      animation: sweep 6s linear infinite;
+    }
+
+    body.light-theme .cup-card::before,
+    body.light-theme .champion-panel::before { display: none; }
+
+    @keyframes sweep { to { transform: rotate(360deg); } }
+
+    .trophy-img-wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 215px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: trophyFloat 2.4s ease-in-out infinite alternate;
+    }
+
+    .trophy-img {
+      width: min(170px, 92%);
+      max-height: 215px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 16px rgba(255,210,31,0.25)) drop-shadow(0 20px 30px rgba(0,0,0,0.46));
+    }
+
+    @keyframes trophyFloat { from { transform: translateY(-7px); } to { transform: translateY(8px); } }
+
+    .cup-label { position: relative; z-index: 2; margin-top: 4px; color: var(--gold); font-size: 10px; font-weight: 950; letter-spacing: 2px; }
+    .cup-sub { position: relative; z-index: 2; margin-top: 8px; color: var(--text); font-size: 13px; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .stage-qf .center-cup { width: 280px; min-height: 430px; }
+    .stage-qf .trophy-stage { width: 270px; height: 360px; }
+    .stage-qf .trophy-stage .trophy-img { width: min(230px, 90%); max-height: 315px; }
+    .stage-sf .center-cup { width: 320px; min-height: 470px; }
+    .stage-sf .trophy-stage { width: 310px; height: 410px; }
+    .stage-sf .trophy-stage .trophy-img { width: min(265px, 90%); max-height: 360px; }
+
+    .final-view {
+      max-width: 1280px;
+      height: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      align-items: center;
+      gap: 28px;
+      overflow: hidden;
+    }
+
+    .final-scoreboard,
+    .champion-panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,210,31,0.24);
+      background: linear-gradient(145deg, rgba(18,24,43,0.72), rgba(5,7,16,0.62));
+      backdrop-filter: blur(18px) saturate(135%);
+      box-shadow: 0 34px 100px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .final-scoreboard { border-radius: 34px; padding: clamp(22px, 3vw, 40px); }
+    .champion-panel { min-height: 620px; padding: 24px; text-align: center; border-radius: 38px; }
+    .champion-panel > * { position: relative; z-index: 2; }
+    .final-header { position: relative; z-index: 2; text-align: center; margin-bottom: 24px; }
+    .final-kicker, .champ-label { display:flex; align-items:center; justify-content:center; gap:9px; color:var(--gold); font-size:13px; font-weight:950; letter-spacing:3px; white-space:nowrap; }
+    .mini-trophy { width: 22px; height:22px; object-fit:contain; flex:0 0 22px; }
+    .final-header h2 { margin: 11px 0 0; color: var(--text); font-size: clamp(34px,5vw,64px); font-weight:950; }
+    .score-row { position:relative; z-index:2; display:grid; grid-template-columns:1fr auto; align-items:center; gap:18px; padding:20px; margin-top:16px; border-radius:24px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.045); }
+    body.light-theme .score-row { background:#f8fafc; border-color:rgba(15,23,42,0.08); }
+    .score-row.winner { border-color: rgba(0,255,136,0.34); background: rgba(0,255,136,0.10); }
+    .final-team { font-size: clamp(18px,2.5vw,32px); font-weight:950; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .final-score { width:clamp(70px,8vw,110px); height:clamp(70px,8vw,110px); display:flex; align-items:center; justify-content:center; border-radius:24px; border:1px solid rgba(255,210,31,0.28); color:var(--gold); font-size:clamp(36px,5vw,64px); font-weight:950; background:rgba(255,210,31,0.10); }
+    .champion-panel .trophy-img-wrap { height:420px; }
+    .champion-panel .trophy-img { width:min(310px,92%); max-height:420px; }
+    .champ-name { margin-top:14px; color:var(--text); font-size:clamp(24px,4vw,42px); font-weight:950; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .champ-sub { margin-top:12px; color:var(--muted); font-size:12px; font-weight:850; letter-spacing:2px; }
+
+    .footer { display:none; }
+
+    @media (max-width: 1200px) {
+      .grid-view { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; overflow-y:auto; }
+    }
+
+    @media (max-width: 900px) {
+      html, body { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+      .page { min-height: 100dvh; height: auto; max-height: none; overflow: visible; }
+
+      .topbar {
+        grid-template-columns: 1fr auto;
+        min-height: auto;
+        padding: 10px 12px;
+        gap: 10px;
+      }
+
+      .left-head { grid-column: 1; gap: 10px; }
+      .right-head { grid-column: 2; gap: 6px; }
+      .main-title { grid-column: 1 / -1; grid-row: 2; padding-top: 2px; }
+      .home-btn { width: 38px; height: 38px; border-radius: 13px; font-size: 16px; }
+      .panel-title { font-size: clamp(1rem, 5vw, 1.35rem); }
+      .clock { font-size: 1rem; }
+      .live-pill { padding: 5px 8px; font-size: 8px; gap: 6px; }
+      .live-dot { width: 9px; height: 9px; }
+      .top-controls { gap: 6px; }
+      .top-control-btn { width: 30px; height: 30px; border-radius: 10px; font-size: 13px; }
+      .main-title .kicker { font-size: clamp(1rem, 6vw, 1.45rem); letter-spacing: .7px; }
+      .main-title .subtitle { font-size: .74rem; margin-top: 5px; }
+
+      .stage-menu {
+        justify-content: flex-start;
+        padding: 9px 10px;
+        gap: 7px;
+      }
+
+      .stage-btn { height: 38px; min-height: 38px; padding: 0 10px; font-size: 9px; border-radius: 11px; }
+      .stage-icon, .stage-trophy-img { width: 14px; height: 14px; flex-basis: 14px; }
+
+      .content {
+        min-height: calc(100dvh - 148px);
+        height: auto;
+        padding: 10px;
+        overflow: visible;
+      }
+
+      .grid-wrap { height: auto; max-width: none; overflow: visible; }
+      .grid-view {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        gap: 10px;
+        overflow: visible;
+      }
+      .pagination { padding: 12px 0 4px; }
+      .page-btn { min-width: 86px; height: 36px; font-size: 11px; }
+
+      .bracket-view {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        border-radius: 18px;
+        padding: 10px;
+      }
+
+      .split-bracket-stage,
+      .split-bracket-stage.stage-qf,
+      .split-bracket-stage.stage-sf {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        gap: 14px;
+        padding: 0;
+        transform: none !important;
+      }
+
+      .center-cup,
+      .stage-qf .center-cup,
+      .stage-sf .center-cup {
+        order: -1;
+        width: 100%;
+        min-height: 0;
+      }
+
+      .cup-card,
+      .stage-qf .cup-card,
+      .stage-sf .cup-card {
+        width: 100%;
+        max-width: 360px;
+        min-height: 0;
+        padding: 14px;
+        border-radius: 22px;
+      }
+
+      .trophy-stage,
+      .stage-qf .trophy-stage,
+      .stage-sf .trophy-stage {
+        width: 100%;
+        height: 210px;
+      }
+
+      .trophy-stage::before {
+        inset: 14px 20px 10px;
+      }
+
+      .trophy-img-wrap,
+      .stage-qf .trophy-img-wrap,
+      .stage-sf .trophy-img-wrap {
+        height: 165px;
+      }
+
+      .trophy-img,
+      .stage-qf .trophy-img,
+      .stage-sf .trophy-img {
+        width: min(150px, 72%);
+        max-height: 165px;
+      }
+
+      .cup-label,
+      .stage-qf .cup-label,
+      .stage-sf .cup-label { font-size: 10px; letter-spacing: 1.5px; }
+      .cup-sub,
+      .stage-qf .cup-sub,
+      .stage-sf .cup-sub { font-size: 13px; }
+
+      .wing-bracket,
+      .stage-qf .wing-bracket,
+      .stage-sf .wing-bracket {
+        position: static;
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .bracket-lines { display: none; }
+
+      .bracket-node,
+      .stage-qf .bracket-node,
+      .stage-sf .bracket-node,
+      .left-bracket .node-r16,
+      .left-bracket .node-qf,
+      .left-bracket .node-sf,
+      .right-bracket .node-r16,
+      .right-bracket .node-qf,
+      .right-bracket .node-sf,
+      .stage-qf .left-bracket .node-qf,
+      .stage-qf .left-bracket .node-sf,
+      .stage-qf .right-bracket .node-qf,
+      .stage-qf .right-bracket .node-sf,
+      .stage-sf .left-bracket .node-sf,
+      .stage-sf .right-bracket .node-sf {
+        position: static;
+        width: 100%;
+        transform: none;
+      }
+
+      .mobile-section-title {
+        display: block;
+      }
+
+      .match,
+      .stage-qf .match,
+      .stage-sf .match {
+        width: 100%;
+        padding: 9px;
+        border-radius: 16px;
+      }
+
+      .match-head,
+      .stage-qf .match-head,
+      .stage-sf .match-head {
+        font-size: 10px;
+        padding-bottom: 6px;
+        margin-bottom: 7px;
+      }
+
+      .slot,
+      .stage-qf .slot,
+      .stage-sf .slot {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 12px;
+        border-radius: 11px;
+      }
+
+      .slot .score,
+      .stage-qf .slot .score,
+      .stage-sf .slot .score {
+        min-width: 30px;
+        padding: 4px 7px;
+      }
+
+      .final-view {
+        height: auto;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        overflow: visible;
+      }
+
+      .final-scoreboard,
+      .champion-panel { border-radius: 22px; padding: 15px; min-height: 0; }
+      .final-header { margin-bottom: 14px; }
+      .final-kicker, .champ-label { font-size: 10px; letter-spacing: 1.5px; gap: 6px; }
+      .mini-trophy { width: 18px; height: 18px; flex-basis: 18px; }
+      .final-header h2 { font-size: 28px; }
+      .score-row { gap: 10px; padding: 12px; border-radius: 17px; }
+      .final-team { font-size: 16px; }
+      .final-score { width: 58px; height: 58px; border-radius: 17px; font-size: 30px; }
+      .champion-panel .trophy-img-wrap { height: 255px; }
+      .champion-panel .trophy-img { width: 205px; max-height: 255px; }
+      .champ-name { font-size: 22px; }
+    }
+
+    @media (max-width: 520px) {
+      .content { min-height: calc(100dvh - 142px); }
+      .panel-title { font-size: .98rem; }
+      .clock { font-size: .92rem; }
+      .live-pill span:last-child { max-width: 84px; overflow: hidden; text-overflow: ellipsis; }
+      .stage-menu { padding-left: 8px; padding-right: 8px; }
+      .stage-btn { height: 36px; min-height: 36px; padding: 0 9px; font-size: 8.5px; }
+      .bracket-view { padding: 8px; }
+      .slot, .stage-qf .slot, .stage-sf .slot { font-size: 11px; }
+    }
+  </style>
 </head>
 <body>
+  <div class="page">
+    <header class="topbar">
+      <div class="left-head">
+        <button class="home-btn" onclick="window.location.href='https://serkantutuncu9.github.io/Portal/'" title="Ana sayfa">
+          <i class="fas fa-home"></i>
+        </button>
+        <div class="panel-title">SKOR TABLOSU</div>
+      </div>
 
-<div class="board-container">
-    <!-- Üst Header -->
-    <div class="header">
-        <div style="display:flex; align-items:center; gap:20px;">
-            <button onclick="window.location.href='https://serkantutuncu9.github.io/Portal/'" style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">
-                <i class="fas fa-home"></i>
-            </button>
-            <h2>SKOR TABLOSU</h2>
-        </div>
-        <div class="project-center-title">
-            <div class="main-title">TÜRKİYE STEM YARIŞMASI</div>
-            <div class="sub-title" id="stage-sub-title">Mini Sumo Robot Yarışması</div>
-        </div>
-        <div class="status-block">
-            <div class="digital-clock" id="live-clock">00:00:00</div>
-            <div class="system-status"><span class="status-dot"></span> SİSTEM AKTİF</div>
-        </div>
-    </div>
+      <div class="main-title">
+        <div class="kicker">TÜRKİYE STEM YARIŞMASI</div>
+        <div class="subtitle" id="stageSubtitle">Mini Sumo Robot Yarışması</div>
+      </div>
 
-    <!-- Aşama Seçici Menü -->
-    <div id="stage-buttons-container" class="bg-[#101323] border-b border-white/5 px-10 py-3 flex flex-wrap gap-2 justify-center items-center">
-    </div>
-
-    <!-- Grid Arayüz Modu (Eleme, Son 64, Son 32 ve Son 16 için) -->
-    <div class="grid-view-container" id="grid-view">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4 py-10" id="stage-grid-view">
+      <div class="right-head">
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="live-pill">
+          <span class="live-dot" id="liveDot"></span>
+          <span id="liveText">SİSTEM AKTİF</span>
         </div>
-    </div>
-
-    <!-- Dinamik Bracket Çift Kanat Görünüm Alanı (Çeyrek Final, Yarı Final, Büyük Final için) -->
-    <div class="bracket-view-container" id="bracket-view">
-        <div class="zoom-canvas" id="zoom-canvas">
-            <svg class="svg-canvas" id="svg-connections"></svg>
-            
-            <!-- Çift Kanat Yapısı: Sol Kanat -->
-            <div class="left-wing" id="bracket-left-wing"></div>
-            
-            <!-- Çift Kanat Yapısı: Merkez (Final ve Şampiyon) -->
-            <div class="center-stage" id="bracket-center-stage"></div>
-            
-            <!-- Çift Kanat Yapısı: Sağ Kanat -->
-            <div class="right-wing" id="bracket-right-wing"></div>
+        <div class="top-controls">
+          <button class="top-control-btn" onclick="document.body.classList.toggle('light-theme')" title="Tema değiştir"><i class="fas fa-lightbulb"></i></button>
+          <button class="top-control-btn" onclick="toggleFullScreen()" title="Tam ekran"><i class="fas fa-expand"></i></button>
         </div>
-    </div>
+      </div>
+    </header>
 
-    <!-- Alt Bilgi Çubuğu -->
-    <div class="footer-info">
-        <span id="status-label" style="color:var(--altin); font-weight:bold;">E-Tablo verisi senkronize ediliyor...</span>
-        <div class="controls">
-            <!-- Kaydırma & Zoom Kontrolleri -->
-            <div id="navigation-hints" class="hidden sm:flex items-center space-x-3 text-xs text-slate-400 mr-4">
-                <span><i class="fas fa-arrows-alt mr-1"></i> Sürükleyerek Kaydırın</span>
-                <span><i class="fas fa-search mr-1"></i> Tekerlek ile Zoom Yapın</span>
-            </div>
-            <div id="zoom-controls" class="hidden flex items-center space-x-2 mr-4">
-                <button onclick="zoom(0.1)" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Yakınlaş"><i class="fas fa-plus"></i></button>
-                <button onclick="zoom(-0.1)" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Uzaklaş"><i class="fas fa-minus"></i></button>
-                <button onclick="resetZoomAndPan()" class="w-8 h-8 rounded-lg bg-cardBg border border-borderClr hover:border-vurgu text-white transition flex items-center justify-center text-xs" title="Sıfırla"><i class="fas fa-sync-alt"></i></button>
-            </div>
-            <i class="fas fa-lightbulb icon-btn" title="Tema Değiştir" onclick="document.body.classList.toggle('light-theme')"></i>
-            <i class="fas fa-expand icon-btn" title="Tam Ekran" onclick="toggleFullScreen()"></i>
-        </div>
-    </div>
-</div>
+    <nav class="stage-menu" id="stageMenu"></nav>
 
-<script>
-    // Canlı Google Apps Script Web App API URL'iniz
+    <main class="content">
+      <section class="grid-wrap" id="gridWrap">
+        <div class="grid-view" id="gridView"></div>
+        <div class="pagination" id="pagination"></div>
+      </section>
+
+      <section class="bracket-view" id="bracketView" style="display:none;">
+        <div class="split-bracket-stage" id="bracketStage"></div>
+      </section>
+
+      <section class="final-view" id="finalView" style="display:none;"></section>
+    </main>
+
+    <footer class="footer"></footer>
+  </div>
+
+  <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxRp5jIAhNPYm3uPwMwzQW7cx_ZVyvNWaF8TRJjrbXNegE-3m4M5wzFmuH5Uf3Cn5rV/exec';
+    const trophyImageURL = 'https://i.hizliresim.com/itn77f6.png';
+    const refreshMs = 15000;
+    const matchesPerPage = 16;
 
-    let activeStage = 'r32'; 
+    let activeStage = 'r16';
+    let activePage = 1;
     let allMatches = {};
+    let refreshTimer = null;
 
-    // Sürükleme ve Zoom Değişkenleri
-    let scale = 1;
-    let panX = 0;
-    let panY = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
+    const stages = [
+      { key: 'eleme', label: 'ÖN ELEMELER', icon: 'fa-filter', tree: false },
+      { key: 'r64', label: 'SON 64', icon: 'fa-list', tree: false },
+      { key: 'r32', label: 'SON 32', icon: 'fa-list', tree: false },
+      { key: 'r16', label: 'SON 16', icon: 'fa-sitemap', tree: true },
+      { key: 'qf', label: 'ÇEYREK FİNAL', icon: 'fa-sitemap', tree: true },
+      { key: 'sf', label: 'YARI FİNAL', icon: 'fa-sitemap', tree: true },
+      { key: 'finals', label: 'BÜYÜK FİNAL', icon: 'trophy', tree: true, final: true }
+    ];
 
-    const bracketView = document.getElementById('bracket-view');
-    const zoomCanvas = document.getElementById('zoom-canvas');
+    const roundNames = { eleme: 'ÖN ELEME', r64: 'SON 64', r32: 'SON 32', r16: 'SON 16', qf: 'ÇEYREK FİNAL', sf: 'YARI FİNAL', f: 'BÜYÜK FİNAL' };
+    const matchLabelPrefixes = { eleme: 'ÖN ELEME M', r64: 'SON 64 M', r32: 'SON 32 M', r16: 'SON 16 M', qf: 'QF ', sf: 'SF ', f: 'F ' };
+    const roundCounts = { eleme: 16, r64: 32, r32: 16, r16: 8, qf: 4, sf: 2, f: 1 };
 
-    // Pan & Zoom Event Dinleyicileri
-    bracketView.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
-        isDragging = true;
-        startX = e.clientX - panX;
-        startY = e.clientY - panY;
-    });
-
-    window.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-
-    bracketView.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        panX = e.clientX - startX;
-        panY = e.clientY - startY;
-        applyZoomAndPan();
-    });
-
-    bracketView.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const zoomStep = 0.05;
-        if (e.deltaY < 0) {
-            scale = Math.min(scale + zoomStep, 1.8);
-        } else {
-            scale = Math.max(scale - zoomStep, 0.3);
-        }
-        applyZoomAndPan();
-    }, { passive: false });
-
-    function applyZoomAndPan() {
-        zoomCanvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-        drawDinamikConnectionsOnResize();
+    function isMobileView() {
+      return window.matchMedia('(max-width: 900px)').matches;
     }
 
-    function zoom(direction) {
-        scale = Math.max(0.3, Math.min(1.8, scale + direction));
-        applyZoomAndPan();
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
-    function resetZoomAndPan() {
-        if (activeStage === 'qf') {
-            scale = 0.55;
-            panX = 220;
-            panY = 100;
-        } else if (activeStage === 'sf') {
-            scale = 0.75;
-            panX = 140;
-            panY = 60;
-        } else if (activeStage === 'finals') {
-            scale = 0.95;
-            panX = 50;
-            panY = 20;
-        } else {
-            scale = 0.85;
-            panX = 100;
-            panY = 40;
-        }
-        applyZoomAndPan();
+    function clean(value, fallback = '') {
+      const text = value === undefined || value === null ? '' : String(value).trim();
+      return text || fallback;
     }
 
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-        else document.exitFullscreen();
-    }
-    
-    function updateClock() { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR'); }
-    setInterval(updateClock, 1000);
+    function score(value) { return clean(value, '0'); }
+    function defaultMatch(id) { return { id, t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' }; }
 
-    // Verileri doğrudan canlı Google Apps Script API'den çeken fonksiyon
+    function normalizeRow(row) {
+      if (!row || typeof row !== 'object') return null;
+      const id = clean(row.sira || row.MatchID || row.matchId || row.id);
+      if (!id) return null;
+      return {
+        id,
+        t1: clean(row.id || row.takim1 || row.robot1 || row.team1, 'Bekleniyor...'),
+        t2: clean(row.takimAdi || row.takim2 || row.robot2 || row.team2, 'Bekleniyor...'),
+        s1: score(row.kolon4 || row.skor1 || row.score1),
+        s2: score(row.kolon5 || row.skor2 || row.score2),
+        winner: clean(row.kolon6 || row.kazanan || row.winner)
+      };
+    }
+
+    function normalizePayload(payload) {
+      const rows = Array.isArray(payload) ? payload : payload && Array.isArray(payload.data) ? payload.data : payload && Array.isArray(payload.skorlar) ? payload.skorlar : null;
+      if (!rows) {
+        if (payload && payload.success === false) throw new Error(payload.error || 'API success=false döndürdü.');
+        throw new Error('API beklenen formatta veri döndürmedi.');
+      }
+      const output = {};
+      rows.forEach(row => {
+        const match = normalizeRow(row);
+        if (match) output[match.id.toLowerCase()] = match;
+      });
+      return output;
+    }
+
+    function demoMatches() {
+      const rows = [
+        ['r16_1', '1001 - Leonidas', '1016 - CyberBulls', '3', '0', '1001 - Leonidas'],
+        ['r16_2', '1002 - TitanForce', '1015 - RoboKing', '3', '1', '1002 - TitanForce'],
+        ['r16_3', '1003 - MechaX', '1014 - IronFist', '0', '3', '1014 - IronFist'],
+        ['r16_4', '1004 - VoltWarriors', '1013 - NanoTech', '3', '0', '1004 - VoltWarriors'],
+        ['r16_5', '1005 - SteelHawks', '1012 - Alpha Bots', '3', '2', '1005 - SteelHawks'],
+        ['r16_6', '1006 - TurboZ', '1011 - DarkEnergy', '3', '0', '1006 - TurboZ'],
+        ['r16_7', '1007 - SkyNet', '1010 - Nexus Prime', '1', '3', '1010 - Nexus Prime'],
+        ['r16_8', '1008 - Cyberium', '1009 - RoboStorm', '3', '0', '1008 - Cyberium'],
+        ['qf_1', '1001 - Leonidas', '1002 - TitanForce', '3', '1', '1001 - Leonidas'],
+        ['qf_2', '1014 - IronFist', '1004 - VoltWarriors', '0', '3', '1004 - VoltWarriors'],
+        ['qf_3', '1005 - SteelHawks', '1006 - TurboZ', '2', '3', '1006 - TurboZ'],
+        ['qf_4', '1010 - Nexus Prime', '1008 - Cyberium', '3', '1', '1010 - Nexus Prime'],
+        ['sf_1', '1001 - Leonidas', '1004 - VoltWarriors', '3', '0', '1001 - Leonidas'],
+        ['sf_2', '1006 - TurboZ', '1010 - Nexus Prime', '1', '3', '1010 - Nexus Prime'],
+        ['f_1', '1001 - Leonidas', '1010 - Nexus Prime', '2', '1', '1001 - Leonidas']
+      ];
+      for (let i = 1; i <= 32; i++) rows.push([`r64_${i}`, `R64 Takım ${i * 2 - 1}`, `R64 Takım ${i * 2}`, '0', '0', '']);
+      for (let i = 1; i <= 16; i++) rows.push([`r32_${i}`, `R32 Takım ${i * 2 - 1}`, `R32 Takım ${i * 2}`, '0', '0', '']);
+      return normalizePayload({ success: true, data: rows.map(r => ({ sira: r[0], id: r[1], takimAdi: r[2], kolon4: r[3], kolon5: r[4], kolon6: r[5] })) });
+    }
+
+    function setConnection(state) {
+      const dot = document.getElementById('liveDot');
+      const liveText = document.getElementById('liveText');
+      dot.classList.remove('warn', 'err');
+      if (state === 'warn') { dot.classList.add('warn'); liveText.textContent = 'DEMO MOD'; }
+      else if (state === 'err') { dot.classList.add('err'); liveText.textContent = 'BAĞLANTI HATASI'; }
+      else { liveText.textContent = 'SİSTEM AKTİF'; }
+    }
+
     async function fetchData() {
-        try {
-            // Sürüm 3.3.1 API uyumlu minisumo skorlarını çekiyoruz
-            const response = await fetch(`${scriptURL}?action=getScores&kategori=minisumo&t=${Date.now()}`);
-            const json = await response.json();
-            
-            if (json && json.success && Array.isArray(json.data)) {
-                let tempMatches = {};
-                
-                json.data.forEach(m => {
-                    const matchKey = m.sira ? m.sira.toString().toLowerCase().trim() : "";
-                    if (matchKey) {
-                        tempMatches[matchKey] = {
-                            id: m.sira,
-                            t1: m.id ? m.id.toString().trim() : 'Bekleniyor...',
-                            t2: m.takimAdi ? m.takimAdi.toString().trim() : 'Bekleniyor...',
-                            s1: m.kolon4 ? m.kolon4.toString().trim() : '0',
-                            s2: m.kolon5 ? m.kolon5.toString().trim() : '0',
-                            winner: m.kolon6 ? m.kolon6.toString().trim() : ''
-                        };
-                    }
-                });
-
-                allMatches = tempMatches;
-                updateStageButtons();
-                renderView();
-                document.getElementById('status-label').innerText = 'E-Tablo Verisi Senkronize Edildi';
-            } else {
-                throw new Error("Geçersiz API verisi");
-            }
-        } catch (err) { 
-            console.error("Veri okuma hatası:", err); 
-            document.getElementById('status-label').innerText = 'E-Tablo bağlantısı kurulamadı!';
-        }
+      try {
+        setConnection('ok');
+        const response = await fetch(`${scriptURL}?action=getScores&kategori=minisumo&t=${Date.now()}`, { cache: 'no-store' });
+        const raw = await response.text();
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${raw.slice(0, 160)}`);
+        let payload;
+        try { payload = JSON.parse(raw); }
+        catch (err) { throw new Error(`API JSON yerine farklı içerik döndürdü: ${raw.slice(0, 160)}`); }
+        allMatches = normalizePayload(payload);
+        setConnection('ok');
+        render();
+      } catch (err) {
+        console.error('Veri okuma hatası:', err);
+        if (Object.keys(allMatches).length === 0) { allMatches = demoMatches(); setConnection('warn'); }
+        else { setConnection('err'); }
+        render();
+      }
     }
 
-    function updateStageButtons() {
-        const container = document.getElementById('stage-buttons-container');
-        if (!container) return;
+    function updateClock() {
+      document.getElementById('clock').textContent = new Date().toLocaleTimeString('tr-TR');
+    }
 
-        container.innerHTML = '';
+    function trophyIconSmall(className = 'stage-trophy-img') {
+      return `<img src="${trophyImageURL}" alt="Kupa" class="${className}">`;
+    }
 
-        // İster boş ister dolu olsun her zaman gösterilecek zorunlu turlar
-        let stagesAvailable = ['eleme', 'r64', 'r32', 'r16', 'qf', 'sf', 'finals'];
-
-        stagesAvailable.forEach(s => {
-            const btn = document.createElement('button');
-            btn.id = `btn-${s}`;
-            btn.onclick = () => setStage(s);
-            
-            let label = '';
-            let icon = '';
-            switch(s) {
-                case 'eleme':
-                    label = 'ÖN ELEMELER';
-                    icon = '<i class="fas fa-filter mr-1"></i>';
-                    break;
-                case 'r64':
-                    label = 'SON 64';
-                    icon = '<i class="fas fa-list mr-1"></i>';
-                    break;
-                case 'r32':
-                    label = 'SON 32';
-                    icon = '<i class="fas fa-list mr-1"></i>';
-                    break;
-                case 'r16':
-                    label = 'SON 16';
-                    icon = '<i class="fas fa-list mr-1"></i>';
-                    break;
-                case 'qf':
-                    label = 'ÇEYREK FİNAL';
-                    icon = '<i class="fas fa-sitemap mr-1"></i>';
-                    break;
-                case 'sf':
-                    label = 'YARI FİNAL';
-                    icon = '<i class="fas fa-sitemap mr-1"></i>';
-                    break;
-                case 'finals':
-                    label = 'BÜYÜK FİNAL';
-                    icon = '<i class="fas fa-trophy mr-1"></i>';
-                    break;
-            }
-
-            if (s === activeStage) {
-                btn.className = (s === 'finals' || s === 'qf' || s === 'sf')
-                    ? "px-4 py-2 rounded-lg text-xs font-bold transition bg-amber-500 text-white shadow"
-                    : "px-4 py-2 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow";
-            } else {
-                btn.className = (s === 'finals' || s === 'qf' || s === 'sf')
-                    ? "px-4 py-2 rounded-lg text-xs font-bold transition text-amber-400 border border-amber-500/20 hover:bg-amber-500/10"
-                    : "px-4 py-2 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
-            }
-            btn.innerHTML = `${icon}${label}`;
-            container.appendChild(btn);
-        });
+    function renderMenu() {
+      const menu = document.getElementById('stageMenu');
+      menu.innerHTML = stages.map(stage => {
+        const icon = stage.icon === 'trophy' ? trophyIconSmall() : `<span class="stage-icon"><i class="fas ${stage.icon}"></i></span>`;
+        return `<button class="stage-btn ${stage.tree ? 'tree' : ''} ${stage.final ? 'final' : ''} ${stage.key === activeStage ? 'active' : ''}" onclick="setStage('${stage.key}')">${icon}<span>${stage.label}</span></button>`;
+      }).join('');
     }
 
     function setStage(stage) {
-        activeStage = stage;
-        updateStageButtons();
-        renderView();
+      activeStage = stage;
+      activePage = 1;
+      render();
     }
 
-    function renderView() {
-        const gridView = document.getElementById('grid-view');
-        const bracketViewDiv = document.getElementById('bracket-view');
-        const titleEl = document.getElementById('stage-sub-title');
-        const navHints = document.getElementById('navigation-hints');
-        const zoomCtrls = document.getElementById('zoom-controls');
-
-        if (activeStage === 'qf' || activeStage === 'sf' || activeStage === 'finals') {
-            gridView.style.display = 'none';
-            bracketViewDiv.style.display = 'block';
-            navHints.classList.remove('hidden');
-            zoomCtrls.classList.remove('hidden');
-            
-            if (activeStage === 'qf') {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Çeyrek Final Eşleşme Ağacı)";
-                renderDualWingBracket(['qf', 'sf']);
-            } else if (activeStage === 'sf') {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Yarı Final Eşleşme Ağacı)";
-                renderDualWingBracket(['sf']);
-            } else {
-                titleEl.innerText = "Mini Sumo Robot Yarışması (Büyük Final)";
-                renderDualWingBracket([]); 
-            }
-            resetZoomAndPan();
-        } else {
-            bracketViewDiv.style.display = 'none';
-            gridView.style.display = 'flex';
-            navHints.classList.add('hidden');
-            zoomCtrls.classList.add('hidden');
-            
-            if (activeStage === 'eleme') titleEl.innerText = "Mini Sumo Robot Yarışması (Ön Eleme Turları)";
-            else if (activeStage === 'r64') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 64 Maçları)";
-            else if (activeStage === 'r32') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 32 Maçları)";
-            else if (activeStage === 'r16') titleEl.innerText = "Mini Sumo Robot Yarışması (Son 16 Maçları)";
-            
-            renderStageGrid();
-        }
+    function setPage(page) {
+      activePage = page;
+      render();
     }
 
-    function renderStageGrid() {
-        const gridContainer = document.getElementById('stage-grid-view');
-        gridContainer.innerHTML = '';
-        
-        let matchPrefix = activeStage; 
-        let maxCount = 16;
-        let title = "SON 32";
-
-        if (activeStage === 'eleme') {
-            const elemeKeys = Object.keys(allMatches).filter(k => k.startsWith('eleme_'));
-            maxCount = elemeKeys.length > 0 ? Math.max(...elemeKeys.map(k => parseInt(k.split('_')[1]) || 1)) : 16;
-            title = "ÖN ELEME";
-        } else if (activeStage === 'r64') {
-            maxCount = 32;
-            title = "SON 64";
-        } else if (activeStage === 'r32') {
-            maxCount = 16;
-            title = "SON 32";
-        } else if (activeStage === 'r16') {
-            maxCount = 8;
-            title = "SON 16";
-        }
-
-        for (let i = 1; i <= maxCount; i++) {
-            const matchKey = `${matchPrefix}_${i}`;
-            const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
-            
-            const isT1Winner = m.winner && m.winner.toString().trim() === m.t1.toString().trim();
-            const isT2Winner = m.winner && m.winner.toString().trim() === m.t2.toString().trim();
-
-            const card = document.createElement('div');
-            card.className = "matchup-box";
-            card.innerHTML = `
-                <div class="match-label">
-                    <span class="uppercase font-bold">${title} - MAÇ ${i}</span>
-                </div>
-                <div class="team-slot-row ${isT1Winner ? 'winner' : (m.winner ? 'loser' : '')}">
-                    <span class="truncate">${m.t1}</span>
-                    <span class="score-badge-box">${m.s1}</span>
-                </div>
-                <div class="team-slot-row ${isT2Winner ? 'winner' : (m.winner ? 'loser' : '')}">
-                    <span class="truncate">${m.t2}</span>
-                    <span class="score-badge-box">${m.s2}</span>
-                </div>
-            `;
-            gridContainer.appendChild(card);
-        }
+    function maxCountFor(prefix) {
+      const keys = Object.keys(allMatches).filter(key => key.startsWith(`${prefix}_`));
+      if (keys.length) return Math.max(...keys.map(key => Number(key.split('_')[1])).filter(Boolean));
+      return roundCounts[prefix] || 0;
     }
 
-    // Çift Kanatlı (Sol - Merkez - Sağ) Bracket Ağacı Üretici Algoritması
-    function renderDualWingBracket(roundsList) {
-        const leftWing = document.getElementById('bracket-left-wing');
-        const rightWing = document.getElementById('bracket-right-wing');
-        const centerStage = document.getElementById('bracket-center-stage');
-
-        // Temizlik
-        leftWing.innerHTML = '';
-        rightWing.innerHTML = '';
-        centerStage.innerHTML = '';
-
-        const roundLabels = {
-            'qf': 'ÇEYREK FİNAL',
-            'sf': 'YARI FİNAL'
-        };
-
-        const counts = { 'qf': 4, 'sf': 2 };
-
-        // 1. Sol ve Sağ Kanat Kolonlarını Ekle (Final hariç turlar)
-        roundsList.forEach((roundKey) => {
-            const totalMatches = counts[roundKey];
-            const halfMatches = totalMatches / 2;
-
-            // Sol Kanat Kolonu (Maçlar: 1'den Yarıya kadar)
-            const leftCol = document.createElement('div');
-            leftCol.className = "round-column";
-            leftCol.id = `col-left-${roundKey}`;
-            
-            for (let i = 1; i <= halfMatches; i++) {
-                createMatchBox(leftCol, roundKey, i, roundLabels[roundKey]);
-            }
-            leftWing.appendChild(leftCol);
-
-            // Sağ Kanat Kolonu (Maçlar: Yarıdan fazlası)
-            const rightCol = document.createElement('div');
-            rightCol.className = "round-column";
-            rightCol.id = `col-right-${roundKey}`;
-            
-            for (let i = halfMatches + 1; i <= totalMatches; i++) {
-                createMatchBox(rightCol, roundKey, i, roundLabels[roundKey]);
-            }
-            rightWing.appendChild(rightCol);
-        });
-
-        // 2. Merkez Sütunu Oluştur (Şampiyonluk Kupası üstte, Büyük Final altta)
-        const champBox = document.createElement('div');
-        champBox.id = "col-champ";
-        champBox.className = "w-full max-w-[280px]";
-        
-        const finalMatch = allMatches['f_1'] || { winner: '' };
-        const champName = (allMatches['champ'] && allMatches['champ'].winner) || finalMatch.winner || 'KUPA BEKLENİYOR';
-
-        // Çeyrek Final sekmesinde kupa, Yarı Final sekmesinde eşleşme ortasına kupa,
-        // Büyük Final sekmesinde ise parıltılı neon taç ve şampiyon efekti eklenir.
-        if (activeStage === 'qf') {
-            champBox.innerHTML = `
-                <div class="bg-[#161a2e] border border-slate-700/60 rounded-2xl p-6 text-center shadow-xl w-full">
-                    <div class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-500/20">
-                        <i class="fas fa-trophy text-4xl text-amber-400"></i>
-                    </div>
-                    <h4 class="text-xs font-black tracking-widest text-slate-400 uppercase mb-1">ŞAMPİYONLUK KUPASI</h4>
-                    <div class="text-base font-extrabold text-slate-300 truncate">${champName}</div>
-                </div>
-            `;
-            centerStage.appendChild(champBox);
-
-            // Çeyrek finaldeyken merkezde final maç kutusu bulunur
-            const finalBox = createFinalBoxHTML(finalMatch);
-            centerStage.appendChild(finalBox);
-        } else if (activeStage === 'sf') {
-            // YARI FİNAL SEKİR TASARIMI: Eşleşmelerin tam ortasında prestijli kupa bulunur
-            champBox.innerHTML = `
-                <div class="bg-gradient-to-b from-amber-500/15 to-transparent border border-amber-500/20 rounded-2xl p-6 text-center shadow-2xl w-full">
-                    <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-500/30">
-                        <i class="fas fa-trophy text-5xl text-amber-400 animate-pulse"></i>
-                    </div>
-                    <h4 class="text-xs font-black tracking-widest text-amber-400 uppercase mb-1">YARI FİNAL</h4>
-                    <div class="text-sm font-extrabold text-white truncate">ŞAMPİYONLUĞA SON ADIM</div>
-                </div>
-            `;
-            centerStage.appendChild(champBox);
-
-            // Yarı finaldeyken de final maç kutusu kupanın altında yer alır
-            const finalBox = createFinalBoxHTML(finalMatch);
-            centerStage.appendChild(finalBox);
-        } else {
-            // BÜYÜK FİNAL SEKİR TASARIMI: Şampiyonluk neon ve taç efektleri aktif
-            champBox.innerHTML = `
-                <div class="bg-gradient-to-b from-amber-500/25 to-yellow-600/5 border-2 border-yellow-500/50 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden w-full">
-                    <div class="absolute -top-10 -left-10 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl"></div>
-                    <div class="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 border border-yellow-500/40">
-                        <i class="fas fa-trophy text-4xl text-yellow-400"></i>
-                    </div>
-                    <i class="fas fa-crown text-3xl text-yellow-400 absolute top-4 right-4 animate-bounce"></i>
-                    <h4 class="text-xs font-black tracking-widest text-yellow-500 uppercase mb-1">ŞAMPİYON</h4>
-                    <div class="text-lg font-extrabold text-white truncate" style="
-                        background: var(--gold-gradient);
-                        background-size: 200% auto;
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        animation: shine-gold 2.5s linear infinite;
-                    ">${champName}</div>
-                    <p class="text-[10px] text-slate-400 mt-2 font-semibold">TÜRKİYE STEM YARIŞMASI</p>
-                </div>
-            `;
-            centerStage.appendChild(champBox);
-
-            const finalBox = createFinalBoxHTML(finalMatch);
-            centerStage.appendChild(finalBox);
-        }
-
-        // 3. Bağlantı Çizgilerini Çiz
-        setTimeout(() => drawDualWingConnections(roundsList), 150);
+    function getMatch(key) {
+      return allMatches[key] || defaultMatch(key);
     }
 
-    function createFinalBoxHTML(finalMatch) {
-        const finalBox = document.createElement('div');
-        finalBox.className = "matchup-box";
-        finalBox.id = "box-f_1";
-        finalBox.style.transform = "scale(1.15)";
-        
-        const isT1Winner = finalMatch.winner && finalMatch.winner.toString().trim() === finalMatch.t1.toString().trim();
-        const isT2Winner = finalMatch.winner && finalMatch.winner.toString().trim() === finalMatch.t2.toString().trim();
+    function matchCard(match, label) {
+      const m = Object.assign(defaultMatch(label), match || {});
+      const isT1Winner = m.winner && m.winner === m.t1;
+      const isT2Winner = m.winner && m.winner === m.t2;
+      const finished = Boolean(m.winner);
+      return `<div class="match ${finished ? 'finished' : ''}" id="box-${escapeHtml(m.id)}">
+        <div class="match-head"><span>${escapeHtml(label)}</span><span>${finished ? '<i class="fas fa-check-circle" style="color:var(--green);"></i>' : '<i class="far fa-clock"></i>'}</span></div>
+        <div class="slot ${isT1Winner ? 'winner' : finished ? 'loser' : ''} ${m.t1 === 'Bekleniyor...' ? 'empty' : ''}"><span class="name">${escapeHtml(m.t1)}</span><span class="score">${escapeHtml(m.s1)}</span></div>
+        <div class="slot ${isT2Winner ? 'winner' : finished ? 'loser' : ''} ${m.t2 === 'Bekleniyor...' ? 'empty' : ''}"><span class="name">${escapeHtml(m.t2)}</span><span class="score">${escapeHtml(m.s2)}</span></div>
+      </div>`;
+    }
 
-        finalBox.innerHTML = `
-            <div class="match-label">
-                <span class="text-amber-400 font-extrabold"><i class="fas fa-trophy mr-1"></i> BÜYÜK FİNAL</span>
-                <span class="text-slate-500">M7</span>
+    function renderGrid(prefix) {
+      const grid = document.getElementById('gridView');
+      const pagination = document.getElementById('pagination');
+      const count = maxCountFor(prefix);
+      const pageCount = Math.max(1, Math.ceil(count / matchesPerPage));
+      if (activePage > pageCount) activePage = pageCount;
+      const start = (activePage - 1) * matchesPerPage + 1;
+      const end = Math.min(count, activePage * matchesPerPage);
+
+      grid.innerHTML = Array.from({ length: Math.max(0, end - start + 1) }, (_, index) => {
+        const number = start + index;
+        return matchCard(getMatch(`${prefix}_${number}`), `${matchLabelPrefixes[prefix]}${number}`);
+      }).join('');
+
+      pagination.innerHTML = pageCount > 1
+        ? Array.from({ length: pageCount }, (_, i) => `<button class="page-btn ${activePage === i + 1 ? 'active' : ''}" onclick="setPage(${i + 1})">${i + 1}. Sayfa</button>`).join('')
+        : '';
+    }
+
+    function cupOnly() {
+      if (activeStage !== 'finals') {
+        return `<div class="center-cup pre-final" id="cupCenter">
+          <div class="trophy-stage">
+            <span class="spark-ring"></span>
+            <img class="trophy-img" src="${trophyImageURL}" alt="Türkiye STEM Yarışması Kupası">
+          </div>
+        </div>`;
+      }
+
+      const finalWinner = clean((allMatches['f_1'] || {}).winner, 'ŞAMPİYON BEKLENİYOR');
+      return `<div class="center-cup" id="cupCenter"><div class="cup-card"><div class="trophy-img-wrap"><img class="trophy-img" src="${trophyImageURL}" alt="Türkiye STEM Yarışması Kupası"></div><div class="cup-label">ŞAMPİYONLUK KUPASI</div><div class="cup-sub">${escapeHtml(finalWinner)}</div></div></div>`;
+    }
+
+    function renderBracket(stage) {
+      const container = document.getElementById('bracketStage');
+
+      function fixedNode(prefix, number, cssClass) {
+        return `<div class="bracket-node ${cssClass}" id="node-${prefix}_${number}">${matchCard(getMatch(`${prefix}_${number}`), `${matchLabelPrefixes[prefix]}${number}`)}</div>`;
+      }
+
+      function wing(side) {
+        const isLeft = side === 'left';
+        const r16List = stage === 'r16' ? (isLeft ? [1,2,3,4] : [5,6,7,8]) : [];
+        const qfList = (stage === 'r16' || stage === 'qf') ? (isLeft ? [1,2] : [3,4]) : [];
+        const sfList = isLeft ? [1] : [2];
+        const r16Classes = ['slot-y1', 'slot-y2', 'slot-y3', 'slot-y4'];
+        const qfClasses = ['slot-q1', 'slot-q2'];
+
+        return `
+          <div class="wing-bracket ${isLeft ? 'left-bracket' : 'right-bracket'}">
+            <div class="bracket-lines">
+              ${stage === 'r16' ? `
+                <span class="line-h h-r16-1"></span><span class="line-h h-r16-2"></span><span class="line-v v-r16-a"></span><span class="line-h h-r16-mid-a"></span>
+                <span class="line-h h-r16-3"></span><span class="line-h h-r16-4"></span><span class="line-v v-r16-b"></span><span class="line-h h-r16-mid-b"></span>
+              ` : ''}
+              ${stage === 'r16' || stage === 'qf' ? `
+                <span class="line-h h-qf-1"></span><span class="line-h h-qf-2"></span><span class="line-v v-qf"></span><span class="line-h h-qf-mid"></span>
+              ` : ''}
+              <span class="line-h h-sf-final"></span>
             </div>
-            <div class="team-slot-row ${isT1Winner ? 'winner' : (finalMatch.winner ? 'loser' : '')}">
-                <span class="truncate text-xs">${finalMatch.t1}</span>
-                <span class="score-badge-box">${finalMatch.s1}</span>
-            </div>
-            <div class="team-slot-row ${isT2Winner ? 'winner' : (finalMatch.winner ? 'loser' : '')}">
-                <span class="truncate text-xs">${finalMatch.t2}</span>
-                <span class="score-badge-box">${finalMatch.s2}</span>
-            </div>
+            ${r16List.map((n, i) => fixedNode('r16', n, `node-r16 ${r16Classes[i]}`)).join('')}
+            ${qfList.map((n, i) => fixedNode('qf', n, `node-qf ${qfClasses[i]}`)).join('')}
+            ${sfList.map(n => fixedNode('sf', n, 'node-sf slot-s1')).join('')}
+          </div>
         `;
-        return finalBox;
+      }
+
+      container.className = `split-bracket-stage stage-${stage}`;
+      container.innerHTML = `${wing('left')}${cupOnly()}${wing('right')}`;
+      requestAnimationFrame(() => setTimeout(fitBracketToScreen, 80));
     }
 
-    function createMatchBox(parent, roundKey, i, label) {
-        const matchKey = `${roundKey}_${i}`;
-        const m = allMatches[matchKey] || { t1: 'Bekleniyor...', t2: 'Bekleniyor...', s1: '-', s2: '-', winner: '' };
-        
-        const isT1Winner = m.winner && m.winner.toString().trim() === m.t1.toString().trim();
-        const isT2Winner = m.winner && m.winner.toString().trim() === m.t2.toString().trim();
+    function fitBracketToScreen() {
+      if (isMobileView()) return;
+      const view = document.getElementById('bracketView');
+      const stage = document.getElementById('bracketStage');
+      if (!view || !stage || view.style.display === 'none') return;
 
-        const box = document.createElement('div');
-        box.className = "matchup-box";
-        box.id = `box-${roundKey}_${i}`;
-        box.innerHTML = `
-            <div class="match-label">
-                <span>${label} ${i}</span>
-                <span class="text-slate-500">M${i}</span>
-            </div>
-            <div class="team-slot-row ${isT1Winner ? 'winner' : (m.winner ? 'loser' : '')}">
-                <span class="truncate text-xs">${m.t1}</span>
-                <span class="score-badge-box">${m.s1}</span>
-            </div>
-            <div class="team-slot-row ${isT2Winner ? 'winner' : (m.winner ? 'loser' : '')}">
-                <span class="truncate text-xs">${m.t2}</span>
-                <span class="score-badge-box">${m.s2}</span>
-            </div>
-        `;
-        parent.appendChild(box);
+      stage.style.transform = 'scale(1)';
+      stage.style.transformOrigin = 'center center';
+
+      const availableW = Math.max(1, view.clientWidth - 4);
+      const availableH = Math.max(1, view.clientHeight - 4);
+      const neededW = Math.max(stage.scrollWidth, stage.getBoundingClientRect().width);
+      const neededH = Math.max(stage.scrollHeight, stage.getBoundingClientRect().height);
+      const scale = Math.min(availableW / neededW, availableH / neededH, 1);
+
+      stage.style.transform = `scale(${scale})`;
     }
 
-    function drawDinamikConnectionsOnResize() {
-        const roundsList = activeStage === 'qf' 
-            ? ['qf', 'sf'] 
-            : (activeStage === 'sf' ? ['sf'] : []);
-        drawDualWingConnections(roundsList);
+    function renderFinal() {
+      const final = Object.assign(defaultMatch('f_1'), allMatches['f_1'] || {});
+      const isT1Winner = final.winner && final.winner === final.t1;
+      const isT2Winner = final.winner && final.winner === final.t2;
+      const champion = clean(final.winner, 'ŞAMPİYON BEKLENİYOR');
+
+      document.getElementById('finalView').innerHTML = `
+        <div class="final-scoreboard">
+          <div class="final-header">
+            <div class="final-kicker">${trophyIconSmall('mini-trophy')}<span>BÜYÜK FİNAL</span>${trophyIconSmall('mini-trophy')}</div>
+            <h2>ŞAMPİYONLUK MAÇI</h2>
+          </div>
+          <div class="score-row ${isT1Winner ? 'winner' : ''}"><div class="final-team">${escapeHtml(final.t1)}</div><div class="final-score">${escapeHtml(final.s1)}</div></div>
+          <div class="score-row ${isT2Winner ? 'winner' : ''}"><div class="final-team">${escapeHtml(final.t2)}</div><div class="final-score">${escapeHtml(final.s2)}</div></div>
+        </div>
+        <div class="champion-panel">
+          <div class="trophy-img-wrap"><img class="trophy-img" src="${trophyImageURL}" alt="Türkiye STEM Yarışması Şampiyon Kupası"></div>
+          <div class="champ-label">${trophyIconSmall('mini-trophy')}<span>ŞAMPİYON</span>${trophyIconSmall('mini-trophy')}</div>
+          <div class="champ-name">${escapeHtml(champion)}</div>
+          <div class="champ-sub">TÜRKİYE STEM YARIŞMASI 2026</div>
+        </div>
+      `;
     }
 
-    // Çift Kanatlı Bezier Bağlantı Çizgisi Çizim Algoritması
-    function drawDualWingConnections(roundsList) {
-        const svg = document.getElementById('svg-connections');
-        if (!svg) return;
-        svg.innerHTML = '';
+    function render() {
+      renderMenu();
+      const subtitle = { eleme: 'Ön Eleme Turları', r64: 'Son 64 Maçları', r32: 'Son 32 Maçları', r16: 'Son 16 Eşleşme Ağacı', qf: 'Çeyrek Final Eşleşme Ağacı', sf: 'Yarı Final Eşleşme Ağacı', finals: 'Büyük Final ve Şampiyon' }[activeStage] || 'Mini Sumo Robot Yarışması';
+      document.getElementById('stageSubtitle').textContent = subtitle;
 
-        const counts = { 'qf': 4, 'sf': 2 };
+      const gridWrap = document.getElementById('gridWrap');
+      const bracket = document.getElementById('bracketView');
+      const final = document.getElementById('finalView');
 
-        for (let r = 0; r < roundsList.length - 1; r++) {
-            const currentRound = roundsList[r];
-            const nextRound = roundsList[r + 1];
-            const currentCount = counts[currentRound];
-            const halfCount = currentCount / 2;
+      gridWrap.style.display = 'none';
+      bracket.style.display = 'none';
+      final.style.display = 'none';
 
-            // Sol Kanat Çizgileri (Soldan Sağa doğru bağlanır)
-            for (let m = 1; m <= halfCount; m++) {
-                const startCard = document.getElementById(`box-${currentRound}_${m}`);
-                const nextMatchIndex = Math.ceil(m / 2);
-                const endCard = document.getElementById(`box-${nextRound}_${nextMatchIndex}`);
-                if (startCard && endCard) {
-                    drawBezierCurveDual(svg, startCard, endCard, "left", "rgba(0, 242, 255, 0.22)", 2);
-                }
-            }
-
-            // Sağ Kanat Çizgileri (Sağdan Sola doğru bağlanır)
-            for (let m = halfCount + 1; m <= currentCount; m++) {
-                const startCard = document.getElementById(`box-${currentRound}_${m}`);
-                const offsetMatchIndex = m - halfCount;
-                const nextMatchIndex = Math.ceil(offsetMatchIndex / 2) + (counts[nextRound] / 2);
-                const endCard = document.getElementById(`box-${nextRound}_${nextMatchIndex}`);
-                if (startCard && endCard) {
-                    drawBezierCurveDual(svg, startCard, endCard, "right", "rgba(0, 242, 255, 0.22)", 2);
-                }
-            }
-        }
-
-        // Sol Kanat Yarı Final Şampiyonunun Finale (f_1) Bağlanması
-        const leftSfWinnerCard = document.getElementById('box-sf_1');
-        const finalCard = document.getElementById('box-f_1');
-        if (leftSfWinnerCard && finalCard) {
-            drawBezierCurveDual(svg, leftSfWinnerCard, finalCard, "left-final", "rgba(0, 242, 255, 0.35)", 2.5);
-        }
-
-        // Sağ Kanat Yarı Final Şampiyonunun Finale (f_1) Bağlanması
-        const rightSfWinnerCard = document.getElementById('box-sf_2');
-        if (rightSfWinnerCard && finalCard) {
-            drawBezierCurveDual(svg, rightSfWinnerCard, finalCard, "right-final", "rgba(0, 242, 255, 0.35)", 2.5);
-        }
-
-        // Final Maçından Şampiyona giden kupa dikey çizgisi (Yukarı doğru)
-        const champCard = document.getElementById('col-champ');
-        if (finalCard && champCard) {
-            drawVerticalBezierCurve(svg, finalCard, champCard, "rgba(255, 215, 0, 0.38)", 2.8);
-        }
+      if (activeStage === 'r16' || activeStage === 'qf' || activeStage === 'sf') {
+        bracket.style.display = 'block';
+        renderBracket(activeStage);
+      } else if (activeStage === 'finals') {
+        final.style.display = 'grid';
+        renderFinal();
+      } else {
+        gridWrap.style.display = 'flex';
+        renderGrid(activeStage);
+      }
     }
 
-    // Çift Kanat Özel Çizgi Çizici (Kanat Yönüne Duyarlı)
-    function drawBezierCurveDual(svg, el1, el2, direction, color, strokeWidth) {
-        const rect1 = el1.getBoundingClientRect();
-        const rect2 = el2.getBoundingClientRect();
-        const containerRect = zoomCanvas.getBoundingClientRect();
-
-        let startX, endX;
-        
-        if (direction === "left" || direction === "left-final") {
-            startX = (rect1.right - containerRect.left) / scale;
-            endX = (rect2.left - containerRect.left) / scale;
-        } else { 
-            startX = (rect1.left - containerRect.left) / scale;
-            endX = (rect2.right - containerRect.left) / scale;
-        }
-
-        const startY = (rect1.top + rect1.height / 2 - containerRect.top) / scale;
-        const endY = (rect2.top + rect2.height / 2 - containerRect.top) / scale;
-
-        const midX = startX + (endX - startX) / 2;
-
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`);
-        path.setAttribute("stroke", color);
-        path.setAttribute("stroke-width", strokeWidth);
-        path.setAttribute("fill", "none");
-        
-        svg.appendChild(path);
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
     }
 
-    // Merkezdeki Finalden Şampiyona Dikey Çizgi Çizici
-    function drawVerticalBezierCurve(svg, el1, el2, color, strokeWidth) {
-        const rect1 = el1.getBoundingClientRect();
-        const rect2 = el2.getBoundingClientRect();
-        const containerRect = zoomCanvas.getBoundingClientRect();
+    window.addEventListener('resize', () => {
+      if (activeStage === 'r16' || activeStage === 'qf' || activeStage === 'sf') setTimeout(fitBracketToScreen, 80);
+    });
 
-        const startX = (rect1.left + rect1.width / 2 - containerRect.left) / scale;
-        const startY = (rect1.top - containerRect.top) / scale; 
-        
-        const endX = (rect2.left + rect2.width / 2 - containerRect.left) / scale;
-        const endY = (rect2.bottom - containerRect.top) / scale; 
-
-        const midY = startY + (endY - startY) / 2;
-
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`);
-        path.setAttribute("stroke", color);
-        path.setAttribute("stroke-width", strokeWidth);
-        path.setAttribute("fill", "none");
-        
-        svg.appendChild(path);
-    }
-
-    // Döngüsel Yenileme Akışı
-    async function startCycle() {
-        await fetchData();
-        setInterval(fetchData, 15000); 
-    }
-
-    startCycle();
     updateClock();
-</script>
+    setInterval(updateClock, 1000);
+    render();
+    fetchData();
+    refreshTimer = setInterval(fetchData, refreshMs);
+  </script>
 </body>
 </html>
